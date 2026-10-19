@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Zwei Linien im Metroplan-Stil: rote Linie mit Kurve, blaue gerade Linie -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Blaue Linie (nach oben) -->
+    <path
+        android:pathData="M74,76 L74,46"
+        android:strokeColor="@color/icon_blue"
+        android:strokeWidth="7"
+        android:strokeLineCap="round" />
+    <path
+        android:fillColor="@color/icon_blue"
+        android:pathData="M66,47 L74,32 L82,47 Z" />
+    <path
+        android:fillColor="@color/icon_station"
+        android:strokeColor="@color/icon_blue"
+        android:strokeWidth="3.5"
+        android:pathData="M69,76 a5,5 0 1,0 10,0 a5,5 0 1,0 -10,0" />
+    <!-- Rote Linie (Kurve nach rechts) -->
+    <path
+        android:pathData="M34,74 L34,58 Q34,50 42,50 L54,50"
+        android:strokeColor="@color/icon_red"
+        android:strokeWidth="7"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+    <path
+        android:fillColor="@color/icon_red"
+        android:pathData="M52,42 L65,50 L52,58 Z" />
+    <path
+        android:fillColor="@color/icon_station"
+        android:strokeColor="@color/icon_red"
+        android:strokeWidth="3.5"
+        android:pathData="M29,74 a5,5 0 1,0 10,0 a5,5 0 1,0 -10,0" />
+</vector>

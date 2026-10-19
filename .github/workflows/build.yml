@@ -1,0 +1,58 @@
+name: APK bauen
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Code holen
+        uses: actions/checkout@v4
+
+      - name: Java einrichten
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Gradle einrichten
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.11.1'
+
+      - name: Spiel-Dateien erzeugen
+        run: python3 tools/build_web.py
+
+      - name: Level prüfen
+        run: node tools/test_levels.js 300
+
+      - name: APK bauen
+        run: gradle assembleRelease --no-daemon --stacktrace
+        env:
+          VERSION_CODE: ${{ github.run_number }}
+
+      - name: APK benennen
+        run: cp app/build/outputs/apk/release/app-release.apk pfeilfrei-${{ github.run_number }}.apk
+
+      - name: APK als Download ablegen
+        uses: actions/upload-artifact@v4
+        with:
+          name: pfeilfrei-apk-${{ github.run_number }}
+          path: pfeilfrei-${{ github.run_number }}.apk
+
+      - name: Release veröffentlichen
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: build-${{ github.run_number }}
+          name: Pfeilfrei Build ${{ github.run_number }}
+          body: |
+            Zum Installieren die Datei pfeilfrei-${{ github.run_number }}.apk unten auf dem Handy antippen und herunterladen.
+            Änderung: ${{ github.event.head_commit.message }}
+          files: pfeilfrei-${{ github.run_number }}.apk
+          make_latest: true

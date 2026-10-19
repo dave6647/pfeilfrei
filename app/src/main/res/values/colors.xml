@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="paper">#E7ECF0</color>
+    <color name="navbar">#16202A</color>
+    <color name="icon_bg">#16202A</color>
+    <color name="icon_red">#FF5B4F</color>
+    <color name="icon_blue">#4597FF</color>
+    <color name="icon_station">#F8FAFB</color>
+</resources>

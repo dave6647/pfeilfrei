@@ -1,0 +1,51 @@
+plugins {
+    id 'com.android.application'
+}
+
+// Die Build-Nummer von GitHub wird zur Versionsnummer, damit sich neue
+// APKs über alte installieren lassen.
+def buildNumber = Integer.parseInt(System.getenv("VERSION_CODE") ?: "1")
+
+android {
+    namespace 'de.pfeilfrei.game'
+    compileSdk 35
+
+    defaultConfig {
+        applicationId 'de.pfeilfrei.game'
+        minSdk 26
+        targetSdk 35
+        versionCode buildNumber
+        versionName "0.1.${buildNumber}"
+    }
+
+    // Test-Schlüssel: gleich bei jedem Build, damit Updates ohne
+    // Deinstallieren funktionieren. Für den Play Store später ersetzen.
+    signingConfigs {
+        test {
+            storeFile file('pfeilfrei-test.keystore')
+            storePassword 'pfeilfrei'
+            keyAlias 'pfeilfrei'
+            keyPassword 'pfeilfrei'
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            signingConfig signingConfigs.test
+        }
+        debug {
+            signingConfig signingConfigs.test
+        }
+    }
+
+    lint {
+        checkReleaseBuilds false
+        abortOnError false
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}

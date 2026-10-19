@@ -1,0 +1,782 @@
+<title>Pfeilfrei</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/*@FONTS@*/
+/* Layout: one-screen transit board. Line-badge header, square-cell canvas, signage footer. */
+:root{
+  --paper:#E7ECF0; --surface:#F8FAFB; --ink:#16202A; --muted:#566573; --grid:#B9C5CF; --rule:#D2DAE1;
+  --signal:#D62839; --hint:#F2B300; --on-hint:#1E1700; --scrim:rgba(231,236,240,.78);
+  --l1:#E03A2F; --l2:#0B6FD3; --l3:#11905A; --l4:#EE8700; --l5:#7A3EC2; --l6:#00939F; --l7:#C11B78; --l8:#9A6B16;
+  --display:"Overpass","Arial Narrow","Helvetica Neue",Arial,sans-serif;
+  --mono:"Overpass Mono",ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0E141A; --surface:#17202A; --ink:#E5EBF0; --muted:#8C9AA7; --grid:#2D3a46; --rule:#24303B;
+    --signal:#FF4D5E; --hint:#FFC933; --on-hint:#1E1700; --scrim:rgba(14,20,26,.8);
+    --l1:#FF5B4F; --l2:#4597FF; --l3:#2EC27F; --l4:#FFA332; --l5:#A77BF2; --l6:#1FC6D3; --l7:#F04FA7; --l8:#D9A441;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0E141A; --surface:#17202A; --ink:#E5EBF0; --muted:#8C9AA7; --grid:#2D3a46; --rule:#24303B;
+  --signal:#FF4D5E; --hint:#FFC933; --on-hint:#1E1700; --scrim:rgba(14,20,26,.8);
+  --l1:#FF5B4F; --l2:#4597FF; --l3:#2EC27F; --l4:#FFA332; --l5:#A77BF2; --l6:#1FC6D3; --l7:#F04FA7; --l8:#D9A441;
+  color-scheme:dark;
+}
+html{height:100%;box-sizing:border-box}
+*,*::before,*::after{box-sizing:inherit}
+body{height:100%;margin:0;background:var(--paper);color:var(--ink);font-family:var(--display);font-size:16px;
+  overflow:hidden;overscroll-behavior:none;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none;touch-action:manipulation}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible{outline:2px solid var(--l2);outline-offset:2px}
+
+/* ---------- game screen ---------- */
+#app{display:flex;flex-direction:column;height:100%;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-block:10px 4px}
+.icon-btn{width:44px;height:44px;border:0;border-radius:12px;background:transparent;display:grid;place-items:center;margin-left:-8px}
+.icon-btn svg{width:24px;height:24px;stroke:var(--ink);fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.badge{display:flex;align-items:center;gap:8px}
+.badge-label{font-size:11px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+.badge-num{font-family:var(--mono);font-weight:700;font-size:19px;min-width:46px;height:34px;padding:2px 12px 0;border-radius:17px;
+  background:var(--ink);color:var(--paper);display:inline-flex;align-items:center;justify-content:center;font-variant-numeric:tabular-nums}
+.hearts{display:flex;gap:3px}
+.hearts svg{width:24px;height:24px}
+.hearts .full path{fill:var(--signal)}
+.hearts .lost path{fill:none;stroke:var(--grid);stroke-width:2}
+.hearts.shake{animation:shake .42s}
+@keyframes shake{20%{transform:translateX(-5px)}40%{transform:translateX(5px)}60%{transform:translateX(-3px)}80%{transform:translateX(2px)}}
+
+#boardWrap{flex:1;position:relative;min-height:0}
+#board{position:absolute;inset:0;width:100%;height:100%;touch-action:none;display:block}
+.coach{position:absolute;left:0;right:0;bottom:0;margin:0 auto;max-width:34ch;text-align:center;font-size:15px;line-height:1.35;
+  color:var(--muted);padding:6px 8px;pointer-events:none;text-wrap:balance}
+
+.foot{display:flex;align-items:center;gap:10px;padding-block:8px 14px}
+.left{flex:1;min-width:0;font-family:var(--mono);font-weight:700;font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.btn{font-weight:700;font-size:15px;letter-spacing:.01em;height:46px;padding:2px 16px 0;border-radius:12px;border:1.5px solid var(--grid);
+  background:var(--surface);color:var(--ink);display:inline-flex;align-items:center;justify-content:center;gap:8px;transition:transform .08s}
+.btn:active{transform:translateY(1px)}
+.btn:disabled{opacity:.45;cursor:default}
+.btn .chip{font-family:var(--mono);font-size:13px;line-height:1;background:var(--hint);color:var(--on-hint);border-radius:6px;padding:4px 6px 2px}
+.btn.primary{background:var(--ink);border-color:var(--ink);color:var(--paper);height:56px;font-size:18px;font-weight:800;padding:3px 22px 0}
+.btn.wide{width:100%}
+
+/* ---------- home ---------- */
+.screen{position:fixed;inset:0;background:var(--paper);z-index:5;
+  padding-top:calc(env(safe-area-inset-top,0px) + 20px);padding-bottom:calc(env(safe-area-inset-bottom,0px) + 20px);
+  padding-left:max(24px,env(safe-area-inset-left,0px));padding-right:max(24px,env(safe-area-inset-right,0px))}
+.home-in{max-width:460px;height:100%;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+.eyebrow{font-size:12px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin:0}
+.wordmark{font-weight:900;font-size:clamp(58px,18vw,92px);line-height:.86;letter-spacing:-.035em;margin:4px 0 0;text-wrap:balance}
+.wordmark span{color:var(--l1)}
+.lede{margin:0;font-size:17px;line-height:1.45;color:var(--muted);max-width:34ch}
+.preview-wrap{flex:1;min-height:120px;position:relative}
+#preview{position:absolute;inset:0;width:100%;height:100%;display:block}
+.stats{display:flex;gap:18px;flex-wrap:wrap;font-family:var(--mono);font-weight:700;font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+.stats b{color:var(--ink);font-weight:700}
+.toggles{display:flex;gap:10px}
+.toggle{flex:1;height:46px;border-radius:12px;border:1.5px solid var(--grid);background:transparent;display:flex;align-items:center;justify-content:space-between;
+  padding:2px 12px 0 14px;font-weight:700;font-size:15px}
+.toggle .sw{width:36px;height:22px;border-radius:11px;background:var(--grid);position:relative;transition:background .15s}
+.toggle .sw::after{content:"";position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:var(--surface);transition:transform .15s}
+.toggle[aria-checked="true"] .sw{background:var(--l3)}
+.toggle[aria-checked="true"] .sw::after{transform:translateX(14px)}
+
+/* ---------- result sheet ---------- */
+.dlg{position:fixed;inset:0;z-index:10;background:var(--scrim);display:flex;align-items:flex-end;justify-content:center;
+  -webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)}
+.sheet{width:100%;max-width:480px;background:var(--surface);border-radius:22px 22px 0 0;border-top:1.5px solid var(--rule);
+  padding:26px max(24px,env(safe-area-inset-right,0px)) calc(env(safe-area-inset-bottom,0px) + 22px) max(24px,env(safe-area-inset-left,0px));
+  display:flex;flex-direction:column;gap:12px;animation:rise .28s cubic-bezier(.2,.8,.2,1)}
+@keyframes rise{from{transform:translateY(40px);opacity:0}}
+.sheet h2{font-size:40px;font-weight:900;letter-spacing:-.02em;line-height:.95;margin:0;text-wrap:balance}
+.sheet p{margin:0;font-size:17px;line-height:1.4;color:var(--muted)}
+.reward{align-self:flex-start;font-family:var(--mono);font-weight:700;font-size:13px;background:var(--hint);color:var(--on-hint);border-radius:7px;padding:5px 8px 3px}
+.row{display:flex;gap:10px;margin-top:8px}
+.row .btn{flex:1}
+.row .btn.primary{flex:2}
+
+@media (prefers-reduced-motion: reduce){
+  .sheet,.hearts.shake{animation:none}
+}
+</style>
+
+<div id="app">
+  <header class="top">
+    <button id="btnHome" class="icon-btn" aria-label="Zum Menü">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h10"/></svg>
+    </button>
+    <div class="badge"><span class="badge-label">Level</span><span id="lvlNum" class="badge-num">1</span></div>
+    <div id="hearts" class="hearts" role="img" aria-label="3 Herzen"></div>
+  </header>
+  <main id="boardWrap">
+    <canvas id="board" aria-label="Spielfeld"></canvas>
+    <p id="coach" class="coach" hidden></p>
+  </main>
+  <footer class="foot">
+    <span id="left" class="left">0 Pfeile übrig</span>
+    <button id="btnHint" class="btn">Tipp <span id="hintCount" class="chip">3</span></button>
+    <button id="btnRestart" class="btn" aria-label="Level neu starten">Neu</button>
+  </footer>
+</div>
+
+<section id="home" class="screen">
+  <div class="home-in">
+    <p class="eyebrow">Pfeil-Puzzle</p>
+    <h1 class="wordmark">Pfeil<br>frei<span>.</span></h1>
+    <p class="lede">Jeder Pfeil fährt nur in seine Richtung. Finde die Reihenfolge, in der alle das Feld verlassen, ohne zusammenzustoßen.</p>
+    <div class="preview-wrap"><canvas id="preview" aria-hidden="true"></canvas></div>
+    <button id="btnPlay" class="btn primary wide">Level 1 spielen</button>
+    <div class="stats" id="stats"></div>
+    <div class="toggles">
+      <button id="tglSound" class="toggle" role="switch" aria-checked="true">Ton <span class="sw"></span></button>
+      <button id="tglVib" class="toggle" role="switch" aria-checked="true">Vibration <span class="sw"></span></button>
+    </div>
+  </div>
+</section>
+
+<div id="dlg" class="dlg" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="dlgTitle">
+    <p id="dlgEyebrow" class="eyebrow">Level 1</p>
+    <h2 id="dlgTitle">Strecke frei!</h2>
+    <p id="dlgText"></p>
+    <span id="dlgReward" class="reward" hidden>+1 Tipp</span>
+    <div class="row">
+      <button id="dlgSecondary" class="btn">Menü</button>
+      <button id="dlgPrimary" class="btn primary">Weiter</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+'use strict';
+
+// ENGINE START
+const DIRS = [[0,-1],[1,0],[0,1],[-1,0]]; // hoch, rechts, runter, links
+
+function mulberry32(a){
+  return function(){
+    a |= 0; a = a + 0x6D2B79F5 | 0;
+    let t = Math.imul(a ^ a >>> 15, 1 | a);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+
+function levelSpec(n){
+  let cols, rows;
+  if (n <= 3) { cols = 4; rows = 5; }
+  else {
+    const step = Math.floor((n - 1) / 3);
+    cols = Math.min(4 + step, 11);
+    rows = Math.min(Math.round(cols * 1.38), 15);
+    if (n > 30) { // Abwechslung bei den Spielfeldgrößen
+      const r = mulberry32(n * 31 + 7)();
+      cols = 9 + Math.floor(r * 3);
+      rows = Math.min(Math.round(cols * 1.38), 15);
+    }
+  }
+  const counts = [3, 4, 6, 8, 11];
+  return {
+    cols, rows,
+    maxArrows: n <= counts.length ? counts[n - 1] : Infinity,
+    minLen: 2,
+    maxLen: n <= 3 ? 3 : Math.min(3 + Math.floor(n / 4), 12),
+    turnP: Math.min(0.18 + n * 0.012, 0.5),
+  };
+}
+
+function buildLevel(spec, seed){
+  const rng = mulberry32(seed);
+  const W = spec.cols, H = spec.rows;
+  const occ = new Int16Array(W * H).fill(-1);
+  const arrows = [];
+  const inB = (x, y) => x >= 0 && y >= 0 && x < W && y < H;
+  const shuffle = arr => { for (let i = arr.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [arr[i], arr[j]] = [arr[j], arr[i]]; } return arr; };
+
+  function tryPlace(hx, hy, d, targetLen){
+    const h = hy * W + hx;
+    if (occ[h] !== -1) return false;
+    // Der Weg vom Kopf bis zum Rand muss beim Platzieren frei sein:
+    // so ist jedes Level garantiert lösbar (in umgekehrter Reihenfolge).
+    const ray = new Set();
+    let cx = hx + DIRS[d][0], cy = hy + DIRS[d][1];
+    while (inB(cx, cy)) { const c = cy * W + cx; if (occ[c] !== -1) return false; ray.add(c); cx += DIRS[d][0]; cy += DIRS[d][1]; }
+    const bx = hx - DIRS[d][0], by = hy - DIRS[d][1];
+    if (!inB(bx, by) || occ[by * W + bx] !== -1) return false;
+    const body = [h, by * W + bx];
+    const inBody = new Set(body);
+    let x = bx, y = by, g = (d + 2) % 4;
+    while (body.length < targetLen) {
+      const left = (g + 3) % 4, right = (g + 1) % 4;
+      const turnFirst = rng() < spec.turnP, lr = rng() < 0.5;
+      const order = turnFirst ? (lr ? [left, right, g] : [right, left, g]) : (lr ? [g, left, right] : [g, right, left]);
+      let moved = false;
+      for (const nd of order) {
+        const nx = x + DIRS[nd][0], ny = y + DIRS[nd][1];
+        if (!inB(nx, ny)) continue;
+        const c = ny * W + nx;
+        if (occ[c] !== -1 || inBody.has(c) || ray.has(c)) continue;
+        x = nx; y = ny; g = nd; body.push(c); inBody.add(c); moved = true; break;
+      }
+      if (!moved) break;
+    }
+    if (body.length < spec.minLen) return false;
+    const cells = body.reverse(); // Schwanz ... Kopf
+    const id = arrows.length;
+    for (const c of cells) occ[c] = id;
+    arrows.push({ id, cells, dir: d, color: Math.floor(rng() * 8) });
+    return true;
+  }
+
+  let tries = 0;
+  const maxTries = W * H * 30;
+  while (arrows.length < spec.maxArrows && tries < maxTries) {
+    tries++;
+    const c = Math.floor(rng() * W * H);
+    if (occ[c] !== -1) continue;
+    const d = Math.floor(rng() * 4);
+    const L = spec.minLen + Math.floor(rng() * (spec.maxLen - spec.minLen + 1));
+    tryPlace(c % W, Math.floor(c / W), d, L);
+  }
+  if (spec.maxArrows === Infinity) {
+    for (const c of shuffle([...Array(W * H).keys()])) {
+      if (occ[c] !== -1) continue;
+      for (const d of shuffle([0, 1, 2, 3])) if (tryPlace(c % W, Math.floor(c / W), d, spec.maxLen)) break;
+    }
+  }
+  // Nachbarn bekommen unterschiedliche Farben
+  for (const a of arrows) {
+    const near = new Set();
+    for (const c of a.cells) {
+      const cx = c % W, cy = Math.floor(c / W);
+      for (const [dx, dy] of DIRS) { const nx = cx + dx, ny = cy + dy; if (inB(nx, ny)) { const o = occ[ny * W + nx]; if (o !== -1 && o < a.id) near.add(arrows[o].color); } }
+    }
+    let k = a.color, guard = 0;
+    while (near.has(k) && guard++ < 8) k = (k + 1) % 8;
+    a.color = k;
+  }
+  return { W, H, arrows };
+}
+
+function freeArrows(level, alive){
+  const { W, H, arrows } = level;
+  const occ = new Int16Array(W * H).fill(-1);
+  for (const a of arrows) if (alive[a.id]) for (const c of a.cells) occ[c] = a.id;
+  const out = [];
+  for (const a of arrows) {
+    if (!alive[a.id]) continue;
+    if (blockerOf(level, occ, a).id === -1) out.push(a.id);
+  }
+  return out;
+}
+
+function blockerOf(level, occ, a){
+  const { W, H } = level;
+  const head = a.cells[a.cells.length - 1];
+  let x = head % W + DIRS[a.dir][0], y = Math.floor(head / W) + DIRS[a.dir][1], j = 0;
+  while (x >= 0 && y >= 0 && x < W && y < H) {
+    const o = occ[y * W + x];
+    if (o !== -1 && o !== a.id) return { id: o, steps: j };
+    x += DIRS[a.dir][0]; y += DIRS[a.dir][1]; j++;
+  }
+  return { id: -1, steps: j };
+}
+
+function generateLevel(n){
+  const spec = levelSpec(n);
+  let best = null;
+  for (let v = 0; v < 30; v++) {
+    const lv = buildLevel(spec, n * 7919 + v * 104729 + 17);
+    const alive = lv.arrows.map(() => true);
+    const free = freeArrows(lv, alive).length;
+    const total = lv.arrows.length;
+    lv.n = n;
+    if (n === 1) return lv;
+    if (total < Math.min(spec.maxArrows, 3)) continue;
+    if (free === total) { best = best || lv; continue; }
+    if (n >= 6 && free / total > 0.4) { best = best || lv; continue; }
+    return lv;
+  }
+  return best || buildLevel(spec, n * 7919 + 17);
+}
+// ENGINE END
+
+/* ---------- Speicher (Android-Brücke oder Browser) ---------- */
+const Store = {
+  get(k, def){
+    try {
+      const raw = window.AndroidBridge ? window.AndroidBridge.load(k) : localStorage.getItem('pfeilfrei_' + k);
+      return raw ? JSON.parse(raw) : def;
+    } catch (e) { return def; }
+  },
+  set(k, v){
+    try {
+      const s = JSON.stringify(v);
+      if (window.AndroidBridge) window.AndroidBridge.save(k, s); else localStorage.setItem('pfeilfrei_' + k, s);
+    } catch (e) {}
+  }
+};
+const progress = Object.assign({ level: 1, flawless: 0, hints: 3, sound: true, vib: true }, Store.get('progress', {}));
+const saveProgress = () => Store.set('progress', progress);
+
+/* ---------- Ton & Vibration ---------- */
+let ac = null;
+function audio(){
+  if (!progress.sound) return null;
+  if (!ac) { try { ac = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { return null; } }
+  if (ac.state === 'suspended') ac.resume();
+  return ac;
+}
+function tone(freq, dur, type, vol, when, slideTo){
+  const a = audio(); if (!a) return;
+  const t = a.currentTime + (when || 0);
+  const o = a.createOscillator(), g = a.createGain();
+  o.type = type || 'triangle';
+  o.frequency.setValueAtTime(freq, t);
+  if (slideTo) o.frequency.exponentialRampToValueAtTime(slideTo, t + dur);
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.exponentialRampToValueAtTime(vol || 0.1, t + 0.008);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  o.connect(g); g.connect(a.destination);
+  o.start(t); o.stop(t + dur + 0.03);
+}
+const SCALE = [0, 2, 4, 7, 9];
+function sndRelease(i){
+  const semis = SCALE[i % 5] + 12 * (Math.floor(i / 5) % 2);
+  const f = 392 * Math.pow(2, semis / 12);
+  tone(f, 0.18, 'triangle', 0.11); tone(f * 2, 0.09, 'sine', 0.035);
+}
+function sndCrash(){ tone(150, 0.24, 'sine', 0.28, 0, 50); tone(80, 0.1, 'square', 0.04); }
+function sndWin(){ [0, 4, 7, 12, 16].forEach((s, i) => tone(523 * Math.pow(2, s / 12), 0.34, 'triangle', 0.09, i * 0.085)); }
+function buzz(ms){
+  if (!progress.vib) return;
+  try { if (window.AndroidBridge) window.AndroidBridge.vibrate(ms); else if (navigator.vibrate) navigator.vibrate(ms); } catch (e) {}
+}
+
+/* ---------- Farben aus dem Theme ---------- */
+let C = {};
+function readColors(){
+  const cs = getComputedStyle(document.documentElement);
+  const v = n => cs.getPropertyValue(n).trim();
+  C = { paper: v('--paper'), surface: v('--surface'), ink: v('--ink'), grid: v('--grid'), rule: v('--rule'),
+        signal: v('--signal'), hint: v('--hint'), lines: [1,2,3,4,5,6,7,8].map(i => v('--l' + i)) };
+}
+const reduceMotion = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+const SPEED = reduceMotion ? 3 : 1;
+
+/* ---------- Spielbrett (Zustand + Animation + Zeichnen) ---------- */
+class Board {
+  constructor(level){
+    this.level = level;
+    this.W = level.W; this.H = level.H;
+    this.alive = level.arrows.map(() => true);
+    this.anim = level.arrows.map(() => null);
+    this.gone = level.arrows.map(() => false);
+    this.occ = new Int16Array(this.W * this.H).fill(-1);
+    for (const a of level.arrows) for (const c of a.cells) this.occ[c] = a.id;
+    this.left = level.arrows.length;
+    this.flash = null; // {id, t0}
+  }
+  remove(id){ for (const c of this.level.arrows[id].cells) if (this.occ[c] === id) this.occ[c] = -1; this.alive[id] = false; this.left--; }
+  tap(id, now){
+    const a = this.level.arrows[id];
+    const b = blockerOf(this.level, this.occ, a);
+    if (b.id === -1) {
+      this.remove(id);
+      this.anim[id] = { type: 'exit', t0: now, sMax: b.steps + a.cells.length + 3 };
+      return { ok: true };
+    }
+    this.anim[id] = { type: 'crash', t0: now, target: b.steps + 0.3 };
+    this.flash = { id: b.id, t0: now };
+    return { ok: false, blocker: b.id };
+  }
+  // Verschiebung entlang des Weges (in Zellen) zum Zeitpunkt now
+  offset(id, now){
+    const an = this.anim[id];
+    if (!an) return 0;
+    const t = (now - an.t0) / 1000 * SPEED;
+    if (an.type === 'exit') {
+      const s = 7 * t + 32 * t * t;
+      if (s >= an.sMax) { this.anim[id] = null; this.gone[id] = true; return an.sMax; }
+      return s;
+    }
+    const t1 = Math.max(0.09, an.target / 16), t2 = 0.26;
+    if (t < t1) { const k = t / t1; return an.target * k * k; }
+    if (t < t1 + t2) { const k = (t - t1) / t2; return an.target * (1 - (1 - Math.pow(1 - k, 3))); }
+    this.anim[id] = null;
+    return 0;
+  }
+  busy(){ return this.anim.some(Boolean); }
+  path(a, extra){
+    const W = this.W, pts = a.cells.map(c => [c % W, Math.floor(c / W)]);
+    const [hx, hy] = pts[pts.length - 1], [dx, dy] = DIRS[a.dir];
+    for (let k = 1; k <= extra; k++) pts.push([hx + dx * k, hy + dy * k]);
+    return pts;
+  }
+}
+
+function pointAt(pts, s){
+  const i = Math.max(0, Math.min(Math.floor(s), pts.length - 2)), f = s - i;
+  return [pts[i][0] + (pts[i + 1][0] - pts[i][0]) * f, pts[i][1] + (pts[i + 1][1] - pts[i][1]) * f];
+}
+function subPath(pts, s0, s1){
+  const out = [pointAt(pts, s0)];
+  for (let i = Math.floor(s0) + 1; i < s1 - 1e-6; i++) out.push(pts[i]);
+  out.push(pointAt(pts, s1));
+  return out;
+}
+
+function layoutFor(cw, ch, W, H, maxCell){
+  const pad = 8;
+  const cell = Math.max(8, Math.min((cw - pad * 2) / W, (ch - pad * 2) / H, maxCell));
+  return { cell, ox: (cw - cell * W) / 2, oy: (ch - cell * H) / 2 };
+}
+
+function tracePath(ctx, pts, L){
+  const P = pts.map(([x, y]) => [L.ox + (x + 0.5) * L.cell, L.oy + (y + 0.5) * L.cell]);
+  ctx.beginPath();
+  ctx.moveTo(P[0][0], P[0][1]);
+  const R = L.cell * 0.4;
+  for (let i = 1; i < P.length - 1; i++) {
+    const lp = Math.hypot(P[i][0] - P[i-1][0], P[i][1] - P[i-1][1]);
+    const ln = Math.hypot(P[i+1][0] - P[i][0], P[i+1][1] - P[i][1]);
+    const r = Math.min(R, lp * (i === 1 ? 0.95 : 0.5), ln * (i === P.length - 2 ? 0.95 : 0.5));
+    if (r > 0.5) ctx.arcTo(P[i][0], P[i][1], P[i+1][0], P[i+1][1], r); else ctx.lineTo(P[i][0], P[i][1]);
+  }
+  ctx.lineTo(P[P.length - 1][0], P[P.length - 1][1]);
+  return P;
+}
+
+function drawBoard(ctx, board, L, now, opts){
+  const { W, H } = board, cell = L.cell;
+  const lw = Math.min(cell * 0.3, 15);
+  // Spielfläche
+  ctx.fillStyle = C.surface;
+  roundRect(ctx, L.ox - 4, L.oy - 4, cell * W + 8, cell * H + 8, Math.min(16, cell * 0.4));
+  ctx.fill();
+  ctx.fillStyle = C.grid;
+  const dotR = Math.max(1.2, cell * 0.055);
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    ctx.beginPath(); ctx.arc(L.ox + (x + 0.5) * cell, L.oy + (y + 0.5) * cell, dotR, 0, Math.PI * 2); ctx.fill();
+  }
+  const arrows = board.level.arrows;
+  const order = [];
+  for (const a of arrows) if (!board.gone[a.id] && (board.alive[a.id] || board.anim[a.id])) order.push(a);
+  order.sort((p, q) => (board.anim[p.id] ? 1 : 0) - (board.anim[q.id] ? 1 : 0));
+  ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  for (const a of order) {
+    const s = board.offset(a.id, now);
+    if (board.gone[a.id]) continue;
+    const segs = a.cells.length - 1;
+    const pts = board.path(a, Math.ceil(s) + 2);
+    const sub = subPath(pts, s, s + segs);
+    const col = C.lines[a.color];
+    // Hinweis- und Kollisions-Leuchten
+    let glow = null;
+    if (opts && opts.hint === a.id) glow = { c: C.hint, a: 0.45 + 0.25 * Math.sin(now / 160) };
+    if (board.flash && board.flash.id === a.id) {
+      const k = (now - board.flash.t0) / 650;
+      if (k < 1) glow = { c: C.signal, a: 0.6 * (1 - k) }; else board.flash = null;
+    }
+    if (glow) {
+      ctx.globalAlpha = glow.a; ctx.strokeStyle = glow.c; ctx.lineWidth = lw * 2.3;
+      tracePath(ctx, sub, L); ctx.stroke(); ctx.globalAlpha = 1;
+    }
+    ctx.strokeStyle = col; ctx.lineWidth = lw;
+    const P = tracePath(ctx, sub, L); ctx.stroke();
+    // Pfeilspitze
+    const [hx, hy] = P[P.length - 1], [dx, dy] = DIRS[a.dir];
+    const tip = cell * 0.4, back = cell * 0.02, half = Math.max(lw * 0.95, cell * 0.24);
+    ctx.fillStyle = col;
+    ctx.beginPath();
+    ctx.moveTo(hx + dx * tip, hy + dy * tip);
+    ctx.lineTo(hx - dx * back - dy * half, hy - dy * back + dx * half);
+    ctx.lineTo(hx - dx * back + dy * half, hy - dy * back - dx * half);
+    ctx.closePath(); ctx.fill();
+    // Endstation am Schwanz
+    const [tx, ty] = P[0];
+    ctx.beginPath(); ctx.arc(tx, ty, lw * 0.62, 0, Math.PI * 2);
+    ctx.fillStyle = C.surface; ctx.fill();
+    ctx.lineWidth = lw * 0.42; ctx.strokeStyle = col; ctx.stroke();
+  }
+}
+
+function roundRect(ctx, x, y, w, h, r){
+  ctx.beginPath();
+  ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
+}
+
+function pickArrow(board, L, px, py){
+  const fx = (px - L.ox) / L.cell - 0.5, fy = (py - L.oy) / L.cell - 0.5;
+  let best = -1, bestD = 0.62;
+  for (const a of board.level.arrows) {
+    if (!board.alive[a.id] || board.anim[a.id]) continue;
+    const pts = a.cells.map(c => [c % board.W, Math.floor(c / board.W)]);
+    const [hx, hy] = pts[pts.length - 1];
+    pts.push([hx + DIRS[a.dir][0] * 0.4, hy + DIRS[a.dir][1] * 0.4]);
+    for (let i = 0; i < pts.length - 1; i++) {
+      const d = segDist(fx, fy, pts[i], pts[i + 1]);
+      if (d < bestD) { bestD = d; best = a.id; }
+    }
+  }
+  return best;
+}
+function segDist(px, py, [ax, ay], [bx, by]){
+  const vx = bx - ax, vy = by - ay, l2 = vx * vx + vy * vy;
+  const t = l2 ? Math.max(0, Math.min(1, ((px - ax) * vx + (py - ay) * vy) / l2)) : 0;
+  return Math.hypot(px - (ax + vx * t), py - (ay + vy * t));
+}
+
+/* ---------- Canvas-Helfer ---------- */
+function fitCanvas(cv){
+  const r = cv.getBoundingClientRect(), dpr = Math.min(window.devicePixelRatio || 1, 3);
+  const w = Math.max(1, Math.round(r.width * dpr)), h = Math.max(1, Math.round(r.height * dpr));
+  if (cv.width !== w || cv.height !== h) { cv.width = w; cv.height = h; }
+  return { w: r.width, h: r.height, dpr };
+}
+
+/* ---------- UI ---------- */
+const $ = id => document.getElementById(id);
+const els = {
+  app: $('app'), home: $('home'), dlg: $('dlg'), board: $('board'), preview: $('preview'),
+  lvl: $('lvlNum'), hearts: $('hearts'), left: $('left'), hint: $('btnHint'), hintCount: $('hintCount'),
+  coach: $('coach'), play: $('btnPlay'), stats: $('stats'), sound: $('tglSound'), vib: $('tglVib'),
+  dEyebrow: $('dlgEyebrow'), dTitle: $('dlgTitle'), dText: $('dlgText'), dReward: $('dlgReward'),
+  dPrimary: $('dlgPrimary'), dSecondary: $('dlgSecondary'),
+};
+const HEART = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.5s-7.5-4.6-9.2-9.4C1.6 7.6 3.9 4.5 7.2 4.5c2 0 3.7 1.1 4.8 2.8 1.1-1.7 2.8-2.8 4.8-2.8 3.3 0 5.6 3.1 4.4 6.6-1.7 4.8-9.2 9.4-9.2 9.4z"/></svg>';
+
+const G = { n: 1, board: null, hearts: 3, crashes: 0, over: false, hint: -1, released: 0, layout: null, screen: 'home' };
+
+function startLevel(n, restore){
+  G.n = n;
+  G.board = new Board(generateLevel(n));
+  G.hearts = 3; G.crashes = 0; G.over = false; G.hint = -1; G.released = 0;
+  if (restore) {
+    for (const id of restore.removed || []) if (G.board.alive[id]) { G.board.remove(id); G.board.gone[id] = true; G.released++; }
+    G.hearts = restore.hearts || 3; G.crashes = restore.crashes || 0;
+  }
+  els.dlg.hidden = true;
+  renderHud(); renderCoach();
+  kick();
+}
+
+function renderHud(){
+  els.lvl.textContent = G.n;
+  els.hearts.innerHTML = [0, 1, 2].map(i => `<span class="${i < G.hearts ? 'full' : 'lost'}">${HEART}</span>`).join('');
+  els.hearts.setAttribute('aria-label', G.hearts === 1 ? '1 Herz' : `${G.hearts} Herzen`);
+  const left = G.board ? G.board.left : 0;
+  els.left.textContent = left === 1 ? '1 Pfeil übrig' : `${left} Pfeile übrig`;
+  els.hintCount.textContent = progress.hints;
+  els.hint.disabled = progress.hints <= 0 && G.hint === -1;
+}
+
+const COACH = {
+  1: 'Tippe einen Pfeil an. Ist sein Weg frei, fährt er hinaus.',
+  2: 'Steht ein Pfeil im Weg, gibt es einen Zusammenstoß. Das kostet ein Herz.',
+  3: 'Kommst du nicht weiter? „Tipp“ zeigt dir einen freien Pfeil.',
+};
+function renderCoach(){
+  const t = COACH[G.n];
+  els.coach.hidden = !t;
+  if (t) els.coach.textContent = t;
+}
+
+function onBoardTap(px, py){
+  if (G.over || !G.board) return;
+  const id = pickArrow(G.board, G.layout, px, py);
+  if (id < 0) return;
+  audio();
+  const now = performance.now();
+  const r = G.board.tap(id, now);
+  if (r.ok) {
+    sndRelease(G.released++); buzz(12);
+    if (G.hint === id) G.hint = -1;
+    if (G.board.left === 0) { G.over = true; setTimeout(win, 520 / SPEED); }
+  } else {
+    G.hearts--; G.crashes++;
+    sndCrash(); buzz(70);
+    els.hearts.classList.remove('shake'); void els.hearts.offsetWidth; els.hearts.classList.add('shake');
+    if (G.hearts <= 0) { G.over = true; setTimeout(lose, 650); }
+  }
+  renderHud(); kick();
+}
+
+function win(){
+  const first = G.n >= progress.level;
+  let reward = false;
+  if (first) {
+    progress.level = G.n + 1;
+    if (G.crashes === 0) progress.flawless++;
+    if (G.n % 2 === 0) { progress.hints++; reward = true; }
+    saveProgress();
+  }
+  sndWin(); buzz(30);
+  showDialog({
+    eyebrow: `Level ${G.n}`,
+    title: 'Strecke frei!',
+    text: G.crashes === 0 ? 'Ohne Zusammenstoß gelöst.' : (G.crashes === 1 ? 'Gelöst mit einem Zusammenstoß.' : `Gelöst mit ${G.crashes} Zusammenstößen.`),
+    reward,
+    primary: ['Weiter', () => startLevel(G.n + 1)],
+    secondary: ['Menü', goHome],
+  });
+}
+function lose(){
+  showDialog({
+    eyebrow: `Level ${G.n}`,
+    title: 'Alle Herzen weg',
+    text: 'Drei Zusammenstöße. Das Level startet neu, die Pfeile liegen wieder genauso.',
+    reward: false,
+    primary: ['Nochmal', () => startLevel(G.n)],
+    secondary: ['Menü', goHome],
+  });
+}
+let dlgActions = {};
+function showDialog(o){
+  els.dEyebrow.textContent = o.eyebrow; els.dTitle.textContent = o.title; els.dText.textContent = o.text;
+  els.dReward.hidden = !o.reward;
+  els.dPrimary.textContent = o.primary[0]; els.dSecondary.textContent = o.secondary[0];
+  dlgActions = { p: o.primary[1], s: o.secondary[1] };
+  els.dlg.hidden = false;
+  renderHud();
+  setTimeout(() => els.dPrimary.focus({ preventScroll: true }), 50);
+}
+els.dPrimary.addEventListener('click', () => dlgActions.p && dlgActions.p());
+els.dSecondary.addEventListener('click', () => dlgActions.s && dlgActions.s());
+
+function useHint(){
+  if (G.over || !G.board) return;
+  if (G.hint !== -1 && G.board.alive[G.hint]) return;
+  if (progress.hints <= 0) return;
+  const free = freeArrows(G.board.level, G.board.alive);
+  if (!free.length) return;
+  G.hint = free[Math.floor(Math.random() * free.length)];
+  progress.hints--; saveProgress();
+  buzz(15); renderHud(); kick();
+}
+
+function goHome(){
+  G.screen = 'home';
+  els.dlg.hidden = true;
+  els.home.hidden = false;
+  renderHome(); kick();
+}
+function goGame(){
+  G.screen = 'game';
+  els.home.hidden = true;
+  if (!G.board || G.n !== progress.level || G.over) startLevel(progress.level);
+  requestAnimationFrame(() => { resize(); kick(); });
+}
+function renderHome(){
+  els.play.textContent = `Level ${progress.level} spielen`;
+  const done = progress.level - 1;
+  els.stats.innerHTML = `<span><b>${done}</b> geschafft</span><span><b>${progress.flawless}</b> fehlerfrei</span><span><b>${progress.hints}</b> Tipps</span>`;
+  els.sound.setAttribute('aria-checked', String(!!progress.sound));
+  els.vib.setAttribute('aria-checked', String(!!progress.vib));
+}
+
+/* ---------- Vorschau auf dem Startbildschirm ---------- */
+const demo = { board: null, next: 0, seed: 1 };
+function newDemo(){
+  const spec = { cols: 9, rows: 5, maxArrows: Infinity, minLen: 2, maxLen: 6, turnP: 0.35 };
+  demo.board = new Board(buildLevel(spec, 900 + demo.seed++));
+  demo.next = performance.now() + 900;
+}
+function stepDemo(now){
+  if (!demo.board) newDemo();
+  if (reduceMotion) return;
+  if (now < demo.next) return;
+  const b = demo.board;
+  if (b.left === 0) { if (!b.busy()) newDemo(); return; }
+  const free = freeArrows(b.level, b.alive);
+  if (free.length) b.tap(free[Math.floor(Math.random() * free.length)], now);
+  demo.next = now + (b.left === 0 ? 1400 : 520);
+}
+
+/* ---------- Render-Schleife ---------- */
+let raf = 0;
+function kick(){ if (!raf) raf = requestAnimationFrame(frame); }
+function frame(now){
+  raf = 0;
+  let again = false;
+  if (G.screen === 'game' && G.board) {
+    const { w, h, dpr } = fitCanvas(els.board);
+    const ctx = els.board.getContext('2d');
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, w, h);
+    G.layout = layoutFor(w, h, G.board.W, G.board.H, 64);
+    drawBoard(ctx, G.board, G.layout, now, { hint: G.hint });
+    again = G.board.busy() || G.hint !== -1 || !!G.board.flash;
+  } else if (G.screen === 'home') {
+    stepDemo(now);
+    const { w, h, dpr } = fitCanvas(els.preview);
+    const ctx = els.preview.getContext('2d');
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, w, h);
+    const b = demo.board;
+    drawBoard(ctx, b, layoutFor(w, h, b.W, b.H, 40), now, {});
+    again = !reduceMotion;
+  }
+  if (again) kick();
+}
+function resize(){ kick(); }
+if (window.ResizeObserver) { new ResizeObserver(resize).observe(els.board); new ResizeObserver(resize).observe(els.preview); }
+window.addEventListener('resize', resize);
+
+/* ---------- Eingabe ---------- */
+let down = null;
+els.board.addEventListener('pointerdown', e => { down = { x: e.clientX, y: e.clientY, id: e.pointerId }; });
+els.board.addEventListener('pointerup', e => {
+  if (!down || down.id !== e.pointerId) return;
+  const moved = Math.hypot(e.clientX - down.x, e.clientY - down.y);
+  down = null;
+  if (moved > 14) return;
+  const r = els.board.getBoundingClientRect();
+  onBoardTap(e.clientX - r.left, e.clientY - r.top);
+});
+els.board.addEventListener('pointercancel', () => { down = null; });
+$('btnHint').addEventListener('click', useHint);
+$('btnRestart').addEventListener('click', () => { if (G.board) startLevel(G.n); });
+$('btnHome').addEventListener('click', goHome);
+els.play.addEventListener('click', () => { audio(); goGame(); });
+els.sound.addEventListener('click', () => { progress.sound = !progress.sound; saveProgress(); renderHome(); if (progress.sound) tone(660, 0.12, 'triangle', 0.08); });
+els.vib.addEventListener('click', () => { progress.vib = !progress.vib; saveProgress(); renderHome(); buzz(25); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') window.pfBack(); });
+
+// Zurück-Taste unter Android: true = erledigt, false = App schließen
+window.pfBack = function(){
+  if (!els.dlg.hidden || G.screen === 'game') { goHome(); return true; }
+  return false;
+};
+
+/* ---------- Theme-Wechsel ---------- */
+readColors();
+const mq = window.matchMedia ? matchMedia('(prefers-color-scheme: dark)') : null;
+if (mq && mq.addEventListener) mq.addEventListener('change', () => { readColors(); kick(); });
+new MutationObserver(() => { readColors(); kick(); }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme', 'class', 'style'] });
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(kick);
+
+/* ---------- Start ---------- */
+function boot(data){
+  const d = data || {};
+  if (d.screen === 'game' && d.n) {
+    G.screen = 'game'; els.home.hidden = true;
+    startLevel(d.n, d);
+  } else {
+    goHome();
+  }
+  kick();
+}
+const hot = window.claude && window.claude.hot;
+if (hot && hot.snapshot) hot.snapshot(() => ({
+  screen: G.screen, n: G.n, hearts: G.hearts, crashes: G.crashes,
+  removed: G.board ? G.board.level.arrows.filter(a => !G.board.alive[a.id]).map(a => a.id) : [],
+}));
+if (hot && hot.ready) hot.ready(boot); else boot(hot && hot.data);
+})();
+</script>
