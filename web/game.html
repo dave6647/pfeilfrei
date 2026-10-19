@@ -46,6 +46,11 @@ button:focus-visible{outline:2px solid var(--l2);outline-offset:2px}
 .hearts .full path{fill:var(--signal)}
 .hearts .lost path{fill:none;stroke:var(--grid);stroke-width:2}
 .hearts.shake{animation:shake .42s}
+/* Hardcore: rote Level-Plakette, 5 etwas kleinere Herzen */
+#app.hc .badge-label{color:var(--signal)}
+#app.hc .badge-num{background:var(--signal)}
+#app.hc .hearts{gap:2px}
+#app.hc .hearts svg{width:20px;height:20px}
 @keyframes shake{20%{transform:translateX(-5px)}40%{transform:translateX(5px)}60%{transform:translateX(-3px)}80%{transform:translateX(2px)}}
 
 #boardWrap{flex:1;position:relative;min-height:0}
@@ -83,6 +88,15 @@ button:focus-visible{outline:2px solid var(--l2);outline-offset:2px}
 .toggle .sw::after{content:"";position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:var(--surface);transition:transform .15s}
 .toggle[aria-checked="true"] .sw{background:var(--l3)}
 .toggle[aria-checked="true"] .sw::after{transform:translateX(14px)}
+
+.hc-btn{width:100%;border-radius:12px;border:1.5px solid var(--signal);background:transparent;padding:10px 14px 8px;
+  display:flex;flex-direction:column;gap:2px;text-align:left;transition:transform .08s}
+.hc-btn:active{transform:translateY(1px)}
+.hc-top{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.hc-name{font-weight:900;font-size:19px;letter-spacing:-.01em;padding-top:2px}
+.hc-hearts{gap:2px}
+.hc-hearts svg{width:17px;height:17px}
+.hc-sub{font-family:var(--mono);font-weight:700;font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
 
 .lang-btn{width:100%;flex:none;text-align:left}
 .lang-current{display:flex;align-items:center;gap:4px;min-width:0;color:var(--muted)}
@@ -139,7 +153,7 @@ button:focus-visible{outline:2px solid var(--l2);outline-offset:2px}
     <button id="btnHome" class="icon-btn" data-i18n-aria="menuAria" aria-label="Menu">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h10"/></svg>
     </button>
-    <div class="badge"><span class="badge-label" data-i18n="level">Level</span><span id="lvlNum" class="badge-num">1</span></div>
+    <div class="badge"><span id="lvlLabel" class="badge-label">Level</span><span id="lvlNum" class="badge-num">1</span></div>
     <div id="hearts" class="hearts" role="img" aria-label="3 hearts"></div>
   </header>
   <main id="boardWrap">
@@ -161,6 +175,10 @@ button:focus-visible{outline:2px solid var(--l2);outline-offset:2px}
     <div class="preview-wrap"><canvas id="preview" aria-hidden="true"></canvas></div>
     <button id="btnPlay" class="btn primary wide">Play level 1</button>
     <div class="stats" id="stats"></div>
+    <button id="btnHc" class="hc-btn">
+      <span class="hc-top"><span class="hc-name" data-i18n="hardcore">Hardcore</span><span id="hcHearts" class="hearts hc-hearts" role="img"></span></span>
+      <span id="hcSub" class="hc-sub"></span>
+    </button>
     <div class="toggles">
       <button id="tglSound" class="toggle" role="switch" aria-checked="true"><span data-i18n="sound">Sound</span> <span class="sw"></span></button>
       <button id="tglVib" class="toggle" role="switch" aria-checked="true"><span data-i18n="vibration">Vibration</span> <span class="sw"></span></button>
@@ -368,6 +386,11 @@ const Store = {
   }
 };
 const progress = Object.assign({ level: 1, flawless: 0, hints: 3, sound: true, vib: true, lang: 'en' }, Store.get('progress', {}));
+// Hardcore hat einen eigenen Spielstand: 5 Herzen für alle Level, eigene Tipps, Rekord (höchstes erreichtes Level).
+const HC_HEARTS = 5;
+const HC_RESET = { level: 1, hearts: HC_HEARTS, hints: 3, newBest: false };
+progress.hc = Object.assign({ best: 1, intro: false }, HC_RESET, progress.hc);
+if (!(progress.hc.hearts > 0)) Object.assign(progress.hc, HC_RESET);
 const saveProgress = () => Store.set('progress', progress);
 
 /* ---------- Sprachen (Standard: Englisch) ----------
@@ -404,6 +427,18 @@ const I18N = {
     loseTitle: 'Out of hearts',
     loseText: 'Three crashes. The level restarts with the same arrows.',
     retry: 'Try again',
+    back: 'Back',
+    hardcore: 'Hardcore',
+    hcPitch: '5 hearts for all levels',
+    hcRecord: n => `Best: ${n}`,
+    hcIntroTitle: '5 hearts. No refills.',
+    hcIntroText: 'Your 5 hearts have to last across all levels. Five crashes and you’re back to level 1. Normal mode is not affected.',
+    hcStart: 'Start',
+    hcLeft: n => n === 1 ? 'Only 1 heart left.' : `${n} hearts left.`,
+    hcOverTitle: 'Game over',
+    hcOverText: n => `Five crashes. You made it to level ${n}. Hardcore starts over at level 1.`,
+    hcNewRecord: 'New record!',
+    hcRestart: 'Start over',
   },
   de: {
     eyebrow: 'Pfeil-Puzzle',
@@ -425,6 +460,18 @@ const I18N = {
     loseTitle: 'Alle Herzen weg',
     loseText: 'Drei Zusammenstöße. Das Level startet neu, die Pfeile liegen wieder genauso.',
     retry: 'Nochmal',
+    back: 'Zurück',
+    hardcore: 'Hardcore',
+    hcPitch: '5 Herzen für alle Level',
+    hcRecord: n => `Rekord: ${n}`,
+    hcIntroTitle: '5 Herzen. Kein Nachschub.',
+    hcIntroText: 'Deine 5 Herzen müssen für alle Level reichen. Nach fünf Zusammenstößen geht es zurück auf Level 1. Der normale Modus bleibt unberührt.',
+    hcStart: 'Los geht’s',
+    hcLeft: n => n === 1 ? 'Nur noch 1 Herz.' : `Noch ${n} Herzen.`,
+    hcOverTitle: 'Zurück auf Start',
+    hcOverText: n => `Fünf Zusammenstöße. Du hast Level ${n} erreicht. Hardcore beginnt wieder bei Level 1.`,
+    hcNewRecord: 'Neuer Rekord!',
+    hcRestart: 'Von vorn',
   },
   es: {
     eyebrow: 'Puzle de flechas',
@@ -446,6 +493,18 @@ const I18N = {
     loseTitle: 'Sin corazones',
     loseText: 'Tres choques. El nivel se reinicia con las mismas flechas.',
     retry: 'Reintentar',
+    back: 'Volver',
+    hardcore: 'Hardcore',
+    hcPitch: '5 corazones para todos los niveles',
+    hcRecord: n => `Récord: ${n}`,
+    hcIntroTitle: '5 corazones. Sin recargas.',
+    hcIntroText: 'Tus 5 corazones tienen que durar todos los niveles. Con cinco choques vuelves al nivel 1. El modo normal no se ve afectado.',
+    hcStart: 'Empezar',
+    hcLeft: n => n === 1 ? 'Te queda 1 corazón.' : `Te quedan ${n} corazones.`,
+    hcOverTitle: 'Fin del juego',
+    hcOverText: n => `Cinco choques. Llegaste al nivel ${n}. El modo hardcore vuelve a empezar en el nivel 1.`,
+    hcNewRecord: '¡Nuevo récord!',
+    hcRestart: 'Empezar de nuevo',
   },
   pt: {
     eyebrow: 'Quebra-cabeça de setas',
@@ -467,6 +526,18 @@ const I18N = {
     loseTitle: 'Sem corações',
     loseText: 'Três batidas. O nível recomeça com as mesmas setas.',
     retry: 'Tentar de novo',
+    back: 'Voltar',
+    hardcore: 'Hardcore',
+    hcPitch: '5 corações para todos os níveis',
+    hcRecord: n => `Recorde: ${n}`,
+    hcIntroTitle: '5 corações. Sem recarga.',
+    hcIntroText: 'Seus 5 corações precisam durar por todos os níveis. Com cinco batidas você volta ao nível 1. O modo normal não é afetado.',
+    hcStart: 'Começar',
+    hcLeft: n => n === 1 ? 'Resta só 1 coração.' : `Restam ${n} corações.`,
+    hcOverTitle: 'Fim de jogo',
+    hcOverText: n => `Cinco batidas. Você chegou ao nível ${n}. O hardcore recomeça no nível 1.`,
+    hcNewRecord: 'Novo recorde!',
+    hcRestart: 'Recomeçar',
   },
   fr: {
     eyebrow: 'Puzzle de flèches',
@@ -488,6 +559,18 @@ const I18N = {
     loseTitle: 'Plus de cœurs',
     loseText: 'Trois collisions. Le niveau recommence avec les mêmes flèches.',
     retry: 'Réessayer',
+    back: 'Retour',
+    hardcore: 'Hardcore',
+    hcPitch: '5 cœurs pour tous les niveaux',
+    hcRecord: n => `Record : ${n}`,
+    hcIntroTitle: '5 cœurs. Aucune recharge.',
+    hcIntroText: 'Tes 5 cœurs doivent tenir sur tous les niveaux. Après cinq collisions, retour au niveau 1. Le mode normal n’est pas touché.',
+    hcStart: 'C’est parti',
+    hcLeft: n => n === 1 ? 'Il te reste 1 cœur.' : `Il te reste ${n} cœurs.`,
+    hcOverTitle: 'Partie terminée',
+    hcOverText: n => `Cinq collisions. Tu as atteint le niveau ${n}. Le mode hardcore reprend au niveau 1.`,
+    hcNewRecord: 'Nouveau record !',
+    hcRestart: 'Recommencer',
   },
   id: {
     eyebrow: 'Teka-teki panah',
@@ -509,6 +592,18 @@ const I18N = {
     loseTitle: 'Nyawa habis',
     loseText: 'Tiga kali tabrakan. Level dimulai ulang dengan panah yang sama.',
     retry: 'Coba lagi',
+    back: 'Kembali',
+    hardcore: 'Hardcore',
+    hcPitch: '5 nyawa untuk semua level',
+    hcRecord: n => `Rekor: ${n}`,
+    hcIntroTitle: '5 nyawa. Tanpa isi ulang.',
+    hcIntroText: '5 nyawamu harus cukup untuk semua level. Lima kali tabrakan dan kamu kembali ke level 1. Mode normal tidak terpengaruh.',
+    hcStart: 'Mulai',
+    hcLeft: n => `Sisa ${n} nyawa.`,
+    hcOverTitle: 'Permainan usai',
+    hcOverText: n => `Lima kali tabrakan. Kamu mencapai level ${n}. Hardcore dimulai lagi dari level 1.`,
+    hcNewRecord: 'Rekor baru!',
+    hcRestart: 'Mulai lagi',
   },
   tr: {
     eyebrow: 'Ok bulmacası',
@@ -530,6 +625,18 @@ const I18N = {
     loseTitle: 'Canın kalmadı',
     loseText: 'Üç çarpışma. Seviye aynı oklarla yeniden başlıyor.',
     retry: 'Tekrar dene',
+    back: 'Geri',
+    hardcore: 'Hardcore',
+    hcPitch: 'Tüm seviyeler için 5 can',
+    hcRecord: n => `Rekor: ${n}`,
+    hcIntroTitle: '5 can. Yenilenmez.',
+    hcIntroText: '5 canın tüm seviyeler boyunca yetmeli. Beş çarpışmada 1. seviyeye dönersin. Normal mod etkilenmez.',
+    hcStart: 'Başla',
+    hcLeft: n => `${n} can kaldı.`,
+    hcOverTitle: 'Oyun bitti',
+    hcOverText: n => `Beş çarpışma. ${n}. seviyeye kadar geldin. Hardcore 1. seviyeden yeniden başlıyor.`,
+    hcNewRecord: 'Yeni rekor!',
+    hcRestart: 'Baştan başla',
   },
 };
 // I18N END
@@ -601,6 +708,8 @@ function sndCelebrate(){
   [0, 4, 7, 12, 16, 19].forEach((s, i) => tone(523 * Math.pow(2, s / 12), 0.36, 'triangle', 0.085, 0.16 + i * 0.075));
   for (let i = 0; i < 7; i++) tone(2093 * Math.pow(2, SCALE[i % 5] / 12 + (i > 4 ? 1 : 0)), 0.18, 'sine', 0.022, 0.55 + i * 0.09 + Math.random() * 0.04);
 }
+// Hardcore vorbei: absteigende Töne
+function sndGameOver(){ [7, 4, 0, -5].forEach((s, i) => tone(392 * Math.pow(2, s / 12), i === 3 ? 0.6 : 0.24, 'triangle', 0.09, i * 0.16)); }
 function buzz(ms){
   if (!progress.vib) return;
   try { if (window.AndroidBridge) window.AndroidBridge.vibrate(ms); else if (navigator.vibrate) navigator.vibrate(ms); } catch (e) {}
@@ -889,14 +998,20 @@ const Confetti = (() => {
 const $ = id => document.getElementById(id);
 const els = {
   app: $('app'), home: $('home'), dlg: $('dlg'), board: $('board'), preview: $('preview'),
-  lvl: $('lvlNum'), hearts: $('hearts'), left: $('left'), hint: $('btnHint'), hintCount: $('hintCount'),
+  lvl: $('lvlNum'), lvlLabel: $('lvlLabel'), hearts: $('hearts'), left: $('left'), hint: $('btnHint'), hintCount: $('hintCount'),
   coach: $('coach'), play: $('btnPlay'), stats: $('stats'), sound: $('tglSound'), vib: $('tglVib'),
+  hc: $('btnHc'), hcHearts: $('hcHearts'), hcSub: $('hcSub'),
   dEyebrow: $('dlgEyebrow'), dTitle: $('dlgTitle'), dText: $('dlgText'), dReward: $('dlgReward'),
   dPrimary: $('dlgPrimary'), dSecondary: $('dlgSecondary'), dSheet: document.querySelector('#dlg .sheet'),
 };
 const HEART = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.5s-7.5-4.6-9.2-9.4C1.6 7.6 3.9 4.5 7.2 4.5c2 0 3.7 1.1 4.8 2.8 1.1-1.7 2.8-2.8 4.8-2.8 3.3 0 5.6 3.1 4.4 6.6-1.7 4.8-9.2 9.4-9.2 9.4z"/></svg>';
+const heartsHtml = (have, max) => Array.from({ length: max }, (_, i) => `<span class="${i < have ? 'full' : 'lost'}">${HEART}</span>`).join('');
 
-const G = { n: 1, board: null, hearts: 3, crashes: 0, over: false, hint: -1, released: 0, layout: null, screen: 'home', skip: null };
+// mode: 'normal' (3 Herzen pro Level) oder 'hc' (Hardcore: 5 Herzen für alle Level, eigener Spielstand)
+const G = { mode: 'normal', n: 1, board: null, hearts: 3, crashes: 0, over: false, hint: -1, released: 0, layout: null, screen: 'home', skip: null };
+const isHc = () => G.mode === 'hc';
+const hintPool = () => isHc() ? progress.hc : progress; // beide haben .hints
+const eyebrow = () => (isHc() ? t('hardcore') + ' · ' : '') + t('level') + ' ' + G.n;
 
 // Verzögerte Schritte nach Levelende (Konfetti → Fenster). Wird abgebrochen, wenn man vorher
 // ins Menü geht oder neu startet, damit kein Fenster über dem Menü auftaucht.
@@ -908,10 +1023,12 @@ function startLevel(n, restore){
   cancelPending(); Confetti.stop();
   G.n = n;
   G.board = new Board(generateLevel(n));
-  G.hearts = 3; G.crashes = 0; G.over = false; G.hint = -1; G.released = 0;
+  G.hearts = isHc() ? progress.hc.hearts : 3;
+  G.crashes = 0; G.over = false; G.hint = -1; G.released = 0;
   if (restore) {
     for (const id of restore.removed || []) if (G.board.alive[id]) { G.board.remove(id); G.board.gone[id] = true; G.released++; }
-    G.hearts = restore.hearts || 3; G.crashes = restore.crashes || 0;
+    if (!isHc()) G.hearts = restore.hearts || 3;
+    G.crashes = restore.crashes || 0;
   }
   els.dlg.hidden = true;
   renderHud(); renderCoach();
@@ -919,12 +1036,14 @@ function startLevel(n, restore){
 }
 
 function renderHud(){
+  els.app.classList.toggle('hc', isHc());
+  els.lvlLabel.textContent = isHc() ? t('hardcore') : t('level');
   els.lvl.textContent = G.n;
-  els.hearts.innerHTML = [0, 1, 2].map(i => `<span class="${i < G.hearts ? 'full' : 'lost'}">${HEART}</span>`).join('');
+  els.hearts.innerHTML = heartsHtml(G.hearts, isHc() ? HC_HEARTS : 3);
   els.hearts.setAttribute('aria-label', t('hearts', G.hearts));
   els.left.textContent = t('left', G.board ? G.board.left : 0);
-  els.hintCount.textContent = progress.hints;
-  els.hint.disabled = progress.hints <= 0 && G.hint === -1;
+  els.hintCount.textContent = hintPool().hints;
+  els.hint.disabled = hintPool().hints <= 0 && G.hint === -1;
 }
 
 function renderCoach(){
@@ -949,17 +1068,26 @@ function onBoardTap(px, py){
     G.hearts--; G.crashes++;
     sndCrash(); buzz(70);
     els.hearts.classList.remove('shake'); void els.hearts.offsetWidth; els.hearts.classList.add('shake');
-    if (G.hearts <= 0) { G.over = true; later(lose, 650); }
+    if (isHc()) {
+      // Herz sofort speichern: App schließen bringt es nicht zurück
+      progress.hc.hearts = Math.max(0, G.hearts);
+      if (G.hearts <= 0) { G.over = true; hcGameOver(); } else saveProgress();
+    } else if (G.hearts <= 0) { G.over = true; later(lose, 650); }
   }
   renderHud(); kick();
 }
 
 function win(){
   // Fortschritt sofort speichern, auch wenn man vor dem Fenster ins Menü geht
-  const first = G.n >= progress.level;
   const flawless = G.crashes === 0;
   let reward = false;
-  if (first) {
+  if (isHc()) {
+    const hc = progress.hc;
+    hc.level = G.n + 1;
+    if (hc.level > hc.best) { hc.best = hc.level; hc.newBest = true; }
+    if (G.n % 2 === 0) { hc.hints++; reward = true; }
+    saveProgress();
+  } else if (G.n >= progress.level) {
     progress.level = G.n + 1;
     if (flawless) progress.flawless++;
     if (G.n % 2 === 0) { progress.hints++; reward = true; }
@@ -969,10 +1097,10 @@ function win(){
     cancelPending();
     if (!party) { sndWin(); buzz(30); }
     showDialog({
-      eyebrow: `Level ${G.n}`,
+      eyebrow: eyebrow(),
       title: t('winTitle'),
-      text: t('winText', G.crashes),
-      reward, party,
+      text: t('winText', G.crashes) + (isHc() ? ' ' + t('hcLeft', G.hearts) : ''),
+      chip: reward ? t('reward') : null, party,
       primary: [t('next'), () => startLevel(G.n + 1)],
       secondary: [t('menu'), goHome],
     });
@@ -988,24 +1116,40 @@ function win(){
 }
 function lose(){
   showDialog({
-    eyebrow: `Level ${G.n}`,
+    eyebrow: eyebrow(),
     title: t('loseTitle'),
     text: t('loseText'),
-    reward: false,
     primary: [t('retry'), () => startLevel(G.n)],
     secondary: [t('menu'), goHome],
   });
 }
+// Hardcore: fünfter Zusammenstoß → zurück auf Level 1 (nur der Hardcore-Spielstand)
+function hcGameOver(){
+  const hc = progress.hc, reached = G.n, record = hc.newBest, best = hc.best;
+  Object.assign(hc, HC_RESET);
+  saveProgress(); // sofort, damit Schließen der App den Reset nicht umgeht
+  later(() => {
+    sndGameOver(); buzz(160);
+    showDialog({
+      eyebrow: eyebrow(),
+      title: t('hcOverTitle'),
+      text: t('hcOverText', reached) + (!record && best > reached ? ' ' + t('hcRecord', best) : ''),
+      chip: record ? t('hcNewRecord') : null,
+      primary: [t('hcRestart'), () => startLevel(1)],
+      secondary: [t('menu'), goHome],
+    });
+  }, 650);
+}
 let dlgActions = {};
 function showDialog(o){
   els.dEyebrow.textContent = o.eyebrow; els.dTitle.textContent = o.title; els.dText.textContent = o.text;
-  els.dReward.hidden = !o.reward;
-  els.dReward.textContent = t('reward');
+  els.dReward.hidden = !o.chip;
+  els.dReward.textContent = o.chip || '';
   els.dSheet.classList.toggle('party', !!o.party);
   els.dPrimary.textContent = o.primary[0]; els.dSecondary.textContent = o.secondary[0];
   dlgActions = { p: o.primary[1], s: o.secondary[1] };
   els.dlg.hidden = false;
-  renderHud();
+  if (G.screen === 'game') renderHud();
   setTimeout(() => els.dPrimary.focus({ preventScroll: true }), 50);
 }
 els.dPrimary.addEventListener('click', () => dlgActions.p && dlgActions.p());
@@ -1014,11 +1158,12 @@ els.dSecondary.addEventListener('click', () => dlgActions.s && dlgActions.s());
 function useHint(){
   if (G.over || !G.board) return;
   if (G.hint !== -1 && G.board.alive[G.hint]) return;
-  if (progress.hints <= 0) return;
+  const pool = hintPool();
+  if (pool.hints <= 0) return;
   const free = freeArrows(G.board.level, G.board.alive);
   if (!free.length) return;
   G.hint = free[Math.floor(Math.random() * free.length)];
-  progress.hints--; saveProgress();
+  pool.hints--; saveProgress();
   buzz(15); renderHud(); kick();
 }
 
@@ -1029,11 +1174,26 @@ function goHome(){
   els.home.hidden = false;
   renderHome(); kick();
 }
-function goGame(){
+function goGame(mode){
+  mode = mode === 'hc' ? 'hc' : 'normal';
+  const target = mode === 'hc' ? progress.hc.level : progress.level;
   G.screen = 'game';
+  els.dlg.hidden = true;
   els.home.hidden = true;
-  if (!G.board || G.n !== progress.level || G.over) startLevel(progress.level);
+  if (!G.board || G.mode !== mode || G.n !== target || G.over) { G.mode = mode; startLevel(target); }
   requestAnimationFrame(() => { resize(); kick(); });
+}
+// Hardcore-Knopf im Menü: beim allerersten Mal kurz die Regeln zeigen
+function openHc(){
+  audio();
+  if (progress.hc.intro) { goGame('hc'); return; }
+  showDialog({
+    eyebrow: t('hardcore'),
+    title: t('hcIntroTitle'),
+    text: t('hcIntroText'),
+    primary: [t('hcStart'), () => { progress.hc.intro = true; saveProgress(); goGame('hc'); }],
+    secondary: [t('back'), () => { els.dlg.hidden = true; els.hc.focus({ preventScroll: true }); }],
+  });
 }
 function renderHome(){
   els.play.textContent = t('play', progress.level);
@@ -1041,6 +1201,12 @@ function renderHome(){
   els.stats.innerHTML = `<span><b>${done}</b> ${t('solved')}</span><span><b>${progress.flawless}</b> ${t('flawless')}</span><span><b>${progress.hints}</b> ${t('hints')}</span>`;
   els.sound.setAttribute('aria-checked', String(!!progress.sound));
   els.vib.setAttribute('aria-checked', String(!!progress.vib));
+  const hc = progress.hc;
+  els.hcHearts.innerHTML = heartsHtml(hc.hearts, HC_HEARTS);
+  els.hcHearts.setAttribute('aria-label', t('hearts', hc.hearts));
+  const neverPlayed = hc.level === 1 && hc.hearts === HC_HEARTS && hc.best <= 1;
+  els.hcSub.textContent = neverPlayed ? t('hcPitch')
+    : `${t('level')} ${hc.level}` + (hc.best > hc.level ? ` · ${t('hcRecord', hc.best)}` : '');
 }
 
 /* ---------- Vorschau auf dem Startbildschirm ---------- */
@@ -1104,9 +1270,10 @@ els.board.addEventListener('pointerup', e => {
 });
 els.board.addEventListener('pointercancel', () => { down = null; });
 $('btnHint').addEventListener('click', useHint);
-$('btnRestart').addEventListener('click', () => { if (G.board) startLevel(G.n); });
+$('btnRestart').addEventListener('click', () => { if (G.board && !G.over) startLevel(G.n); });
 $('btnHome').addEventListener('click', goHome);
-els.play.addEventListener('click', () => { audio(); goGame(); });
+els.play.addEventListener('click', () => { audio(); goGame('normal'); });
+els.hc.addEventListener('click', openHc);
 els.sound.addEventListener('click', () => { progress.sound = !progress.sound; saveProgress(); renderHome(); if (progress.sound) tone(660, 0.12, 'triangle', 0.08); });
 els.vib.addEventListener('click', () => { progress.vib = !progress.vib; saveProgress(); renderHome(); buzz(25); });
 /* ---------- Sprachauswahl ---------- */
@@ -1158,6 +1325,7 @@ applyLanguage();
 function boot(data){
   const d = data || {};
   if (d.screen === 'game' && d.n) {
+    G.mode = d.mode === 'hc' ? 'hc' : 'normal';
     G.screen = 'game'; els.home.hidden = true;
     startLevel(d.n, d);
   } else {
@@ -1167,7 +1335,7 @@ function boot(data){
 }
 const hot = window.claude && window.claude.hot;
 if (hot && hot.snapshot) hot.snapshot(() => ({
-  screen: G.screen, n: G.n, hearts: G.hearts, crashes: G.crashes,
+  screen: G.screen, mode: G.mode, n: G.n, hearts: G.hearts, crashes: G.crashes,
   removed: G.board ? G.board.level.arrows.filter(a => !G.board.alive[a.id]).map(a => a.id) : [],
 }));
 if (hot && hot.ready) hot.ready(boot); else boot(hot && hot.data);
