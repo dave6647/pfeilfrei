@@ -116,6 +116,12 @@ button:focus-visible{outline:2px solid var(--l2);outline-offset:2px}
 .row{display:flex;gap:10px;margin-top:8px}
 .row .btn{flex:1}
 .row .btn.primary{flex:2}
+/* Fehlerfrei gelöst: Titel springt nach dem Konfetti hinein */
+.sheet.party h2{transform-origin:left 70%;animation:pop .55s .08s cubic-bezier(.2,1.5,.35,1) both}
+@keyframes pop{from{transform:scale(.55);opacity:0}}
+
+/* ---------- Konfetti-Ebene über allem, fängt keine Berührungen ab ---------- */
+#fx{position:fixed;inset:0;width:100%;height:100%;z-index:11;pointer-events:none}
 
 @media (max-height: 700px){
   .home-in{gap:12px}
@@ -124,7 +130,7 @@ button:focus-visible{outline:2px solid var(--l2);outline-offset:2px}
   .preview-wrap{min-height:72px}
 }
 @media (prefers-reduced-motion: reduce){
-  .sheet,.hearts.shake{animation:none}
+  .sheet,.sheet.party h2,.hearts.shake{animation:none}
 }
 </style>
 
@@ -188,6 +194,8 @@ button:focus-visible{outline:2px solid var(--l2);outline-offset:2px}
     <div id="langList" class="lang-list" role="radiogroup" aria-labelledby="langTitle"></div>
   </div>
 </div>
+
+<canvas id="fx" aria-hidden="true" hidden></canvas>
 
 <script>
 (() => {
@@ -568,6 +576,31 @@ function sndRelease(i){
 }
 function sndCrash(){ tone(150, 0.24, 'sine', 0.28, 0, 50); tone(80, 0.1, 'square', 0.04); }
 function sndWin(){ [0, 4, 7, 12, 16].forEach((s, i) => tone(523 * Math.pow(2, s / 12), 0.34, 'triangle', 0.09, i * 0.085)); }
+// Konfetti-Kanone: kurzes Rauschen (Knall) + tiefer Schlag
+let noiseBuf = null;
+function sndPop(when){
+  const a = audio(); if (!a) return;
+  if (!noiseBuf) {
+    noiseBuf = a.createBuffer(1, Math.floor(a.sampleRate * 0.25), a.sampleRate);
+    const d = noiseBuf.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / d.length, 3);
+  }
+  const t0 = a.currentTime + (when || 0);
+  const src = a.createBufferSource(), f = a.createBiquadFilter(), g = a.createGain();
+  src.buffer = noiseBuf; f.type = 'bandpass'; f.frequency.value = 1500; f.Q.value = 0.8;
+  g.gain.setValueAtTime(0.0001, t0);
+  g.gain.exponentialRampToValueAtTime(0.3, t0 + 0.004);
+  g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.15);
+  src.connect(f); f.connect(g); g.connect(a.destination);
+  src.start(t0); src.stop(t0 + 0.26);
+  tone(190, 0.1, 'sine', 0.16, when, 70);
+}
+// Fehlerfrei: zwei Knalle, Fanfare, danach leises Glitzern
+function sndCelebrate(){
+  sndPop(0); sndPop(0.12);
+  [0, 4, 7, 12, 16, 19].forEach((s, i) => tone(523 * Math.pow(2, s / 12), 0.36, 'triangle', 0.085, 0.16 + i * 0.075));
+  for (let i = 0; i < 7; i++) tone(2093 * Math.pow(2, SCALE[i % 5] / 12 + (i > 4 ? 1 : 0)), 0.18, 'sine', 0.022, 0.55 + i * 0.09 + Math.random() * 0.04);
+}
 function buzz(ms){
   if (!progress.vib) return;
   try { if (window.AndroidBridge) window.AndroidBridge.vibrate(ms); else if (navigator.vibrate) navigator.vibrate(ms); } catch (e) {}
@@ -756,6 +789,102 @@ function fitCanvas(cv){
   return { w: r.width, h: r.height, dpr };
 }
 
+/* ---------- Konfetti (nur wenn ein Level ohne Zusammenstoß gelöst wird) ----------
+   Zwei Kanonen unten links und rechts schießen Schnipsel in den Linienfarben nach oben,
+   die dann flatternd herunterfallen. Eigene Zeichenebene (#fx) über dem Ergebnis-Fenster. */
+const Confetti = (() => {
+  const cv = document.getElementById('fx');
+  const ctx = cv.getContext('2d');
+  const rnd = (a, b) => a + Math.random() * (b - a);
+  let parts = [], raf = 0, last = 0, W = 0, H = 0, fade = 1, fading = false;
+
+  function fit(){
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    W = window.innerWidth; H = window.innerHeight;
+    cv.width = Math.max(1, Math.round(W * dpr)); cv.height = Math.max(1, Math.round(H * dpr));
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  // side: -1 = links, 1 = rechts
+  function cannon(side, delay){
+    const cols = C.lines.concat(C.hint, C.hint);
+    const k = Math.min(1.6, Math.max(1, Math.min(W, H) / 420)); // größere Schnipsel auf Tablets
+    for (let i = 0; i < 80; i++) {
+      const r = Math.random();
+      parts.push({
+        x: side < 0 ? -6 : W + 6, y: H * rnd(0.9, 1.0),
+        vx: -side * W * rnd(0.12, 1.9), vy: -H * rnd(1.9, 3.2),
+        wait: delay + rnd(0, 0.05), age: 0, life: rnd(2.7, 3.7),
+        kind: r < 0.66 ? 0 : (r < 0.86 ? 1 : 2), // Streifen, Punkt, Ring (wie eine Station)
+        w: rnd(7, 12) * k, h: rnd(4, 6) * k, s: rnd(3, 4.4) * k,
+        col: cols[Math.floor(Math.random() * cols.length)],
+        rot: rnd(0, Math.PI * 2), vr: rnd(-7, 7), flip: rnd(0, Math.PI * 2), vf: rnd(7, 15),
+        sway: rnd(10, 26) * k, sf: rnd(2.5, 5), sp: rnd(0, Math.PI * 2), vt: H * rnd(0.16, 0.32),
+      });
+    }
+  }
+  function step(dt){
+    let alive = 0;
+    for (const p of parts) {
+      if (p.dead) continue;
+      if (p.wait > 0) { p.wait -= dt; alive++; continue; }
+      p.age += dt;
+      if (p.age >= p.life || p.y > H + 40) { p.dead = true; continue; }
+      alive++;
+      if (p.vy < 0) { p.vy = (p.vy + 2.6 * H * dt) * Math.exp(-1.5 * dt); } // Steigflug, gebremst
+      else p.vy += (p.vt - p.vy) * Math.min(1, 4 * dt);                    // Flattern nach unten
+      p.vx *= Math.exp(-2.2 * dt);
+      const swing = p.vy > 0 ? Math.min(1, p.vy / p.vt) * Math.cos(p.age * p.sf + p.sp) * p.sway * p.sf : 0;
+      p.x += (p.vx + swing) * dt; p.y += p.vy * dt;
+      p.rot += p.vr * dt; p.flip += p.vf * dt;
+    }
+    return alive;
+  }
+  function draw(){
+    ctx.clearRect(0, 0, W, H);
+    for (const p of parts) {
+      if (p.dead || p.wait > 0) continue;
+      ctx.globalAlpha = Math.max(0, Math.min(1, (p.life - p.age) / 0.7)) * fade;
+      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot);
+      if (p.kind === 0) {
+        ctx.scale(1, Math.cos(p.flip));
+        ctx.fillStyle = p.col; ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+      } else {
+        ctx.scale(Math.max(0.2, Math.abs(Math.cos(p.flip))), 1);
+        ctx.beginPath(); ctx.arc(0, 0, p.s, 0, Math.PI * 2);
+        if (p.kind === 1) { ctx.fillStyle = p.col; ctx.fill(); }
+        else { ctx.fillStyle = C.surface; ctx.fill(); ctx.lineWidth = p.s * 0.6; ctx.strokeStyle = p.col; ctx.stroke(); }
+      }
+      ctx.restore();
+    }
+    ctx.globalAlpha = 1;
+  }
+  function frame(now){
+    raf = 0;
+    const dt = Math.min(0.05, Math.max(0, (now - last) / 1000)); last = now;
+    if (fading) fade = Math.max(0, fade - dt / 0.25);
+    const alive = step(dt);
+    draw();
+    if (alive && fade > 0) raf = requestAnimationFrame(frame); else end();
+  }
+  function end(){
+    if (raf) cancelAnimationFrame(raf);
+    raf = 0; parts = []; fading = false; fade = 1;
+    ctx.clearRect(0, 0, W, H); cv.hidden = true;
+  }
+  window.addEventListener('resize', () => { if (parts.length) fit(); });
+  return {
+    start(){
+      end(); fit();
+      cannon(-1, 0); cannon(1, 0.12);
+      cv.hidden = false;
+      last = performance.now();
+      raf = requestAnimationFrame(frame);
+    },
+    // sanft ausblenden (z. B. wenn man vorher auf „Weiter“ tippt)
+    stop(){ if (parts.length) fading = true; },
+  };
+})();
+
 /* ---------- UI ---------- */
 const $ = id => document.getElementById(id);
 const els = {
@@ -763,13 +892,20 @@ const els = {
   lvl: $('lvlNum'), hearts: $('hearts'), left: $('left'), hint: $('btnHint'), hintCount: $('hintCount'),
   coach: $('coach'), play: $('btnPlay'), stats: $('stats'), sound: $('tglSound'), vib: $('tglVib'),
   dEyebrow: $('dlgEyebrow'), dTitle: $('dlgTitle'), dText: $('dlgText'), dReward: $('dlgReward'),
-  dPrimary: $('dlgPrimary'), dSecondary: $('dlgSecondary'),
+  dPrimary: $('dlgPrimary'), dSecondary: $('dlgSecondary'), dSheet: document.querySelector('#dlg .sheet'),
 };
 const HEART = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.5s-7.5-4.6-9.2-9.4C1.6 7.6 3.9 4.5 7.2 4.5c2 0 3.7 1.1 4.8 2.8 1.1-1.7 2.8-2.8 4.8-2.8 3.3 0 5.6 3.1 4.4 6.6-1.7 4.8-9.2 9.4-9.2 9.4z"/></svg>';
 
-const G = { n: 1, board: null, hearts: 3, crashes: 0, over: false, hint: -1, released: 0, layout: null, screen: 'home' };
+const G = { n: 1, board: null, hearts: 3, crashes: 0, over: false, hint: -1, released: 0, layout: null, screen: 'home', skip: null };
+
+// Verzögerte Schritte nach Levelende (Konfetti → Fenster). Wird abgebrochen, wenn man vorher
+// ins Menü geht oder neu startet, damit kein Fenster über dem Menü auftaucht.
+let pendingTimers = [];
+function later(fn, ms){ pendingTimers.push(setTimeout(fn, ms)); }
+function cancelPending(){ pendingTimers.forEach(clearTimeout); pendingTimers = []; G.skip = null; }
 
 function startLevel(n, restore){
+  cancelPending(); Confetti.stop();
   G.n = n;
   G.board = new Board(generateLevel(n));
   G.hearts = 3; G.crashes = 0; G.over = false; G.hint = -1; G.released = 0;
@@ -798,6 +934,7 @@ function renderCoach(){
 }
 
 function onBoardTap(px, py){
+  if (G.over && G.skip) { G.skip(); return; } // Tippen während des Konfettis zeigt das Fenster sofort
   if (G.over || !G.board) return;
   const id = pickArrow(G.board, G.layout, px, py);
   if (id < 0) return;
@@ -807,34 +944,47 @@ function onBoardTap(px, py){
   if (r.ok) {
     sndRelease(G.released++); buzz(12);
     if (G.hint === id) G.hint = -1;
-    if (G.board.left === 0) { G.over = true; setTimeout(win, 520 / SPEED); }
+    if (G.board.left === 0) { G.over = true; win(); }
   } else {
     G.hearts--; G.crashes++;
     sndCrash(); buzz(70);
     els.hearts.classList.remove('shake'); void els.hearts.offsetWidth; els.hearts.classList.add('shake');
-    if (G.hearts <= 0) { G.over = true; setTimeout(lose, 650); }
+    if (G.hearts <= 0) { G.over = true; later(lose, 650); }
   }
   renderHud(); kick();
 }
 
 function win(){
+  // Fortschritt sofort speichern, auch wenn man vor dem Fenster ins Menü geht
   const first = G.n >= progress.level;
+  const flawless = G.crashes === 0;
   let reward = false;
   if (first) {
     progress.level = G.n + 1;
-    if (G.crashes === 0) progress.flawless++;
+    if (flawless) progress.flawless++;
     if (G.n % 2 === 0) { progress.hints++; reward = true; }
     saveProgress();
   }
-  sndWin(); buzz(30);
-  showDialog({
-    eyebrow: `Level ${G.n}`,
-    title: t('winTitle'),
-    text: t('winText', G.crashes),
-    reward,
-    primary: [t('next'), () => startLevel(G.n + 1)],
-    secondary: [t('menu'), goHome],
-  });
+  const show = party => {
+    cancelPending();
+    if (!party) { sndWin(); buzz(30); }
+    showDialog({
+      eyebrow: `Level ${G.n}`,
+      title: t('winTitle'),
+      text: t('winText', G.crashes),
+      reward, party,
+      primary: [t('next'), () => startLevel(G.n + 1)],
+      secondary: [t('menu'), goHome],
+    });
+  };
+  if (!flawless || reduceMotion) { later(() => show(false), 520 / SPEED); return; }
+  // Fehlerfrei: erst Konfetti, dann das Fenster
+  later(() => {
+    Confetti.start(); sndCelebrate();
+    buzz(25); later(() => buzz(25), 130);
+    G.skip = () => show(true);
+    later(() => show(true), 1000);
+  }, 360);
 }
 function lose(){
   showDialog({
@@ -851,6 +1001,7 @@ function showDialog(o){
   els.dEyebrow.textContent = o.eyebrow; els.dTitle.textContent = o.title; els.dText.textContent = o.text;
   els.dReward.hidden = !o.reward;
   els.dReward.textContent = t('reward');
+  els.dSheet.classList.toggle('party', !!o.party);
   els.dPrimary.textContent = o.primary[0]; els.dSecondary.textContent = o.secondary[0];
   dlgActions = { p: o.primary[1], s: o.secondary[1] };
   els.dlg.hidden = false;
@@ -872,6 +1023,7 @@ function useHint(){
 }
 
 function goHome(){
+  cancelPending(); Confetti.stop();
   G.screen = 'home';
   els.dlg.hidden = true;
   els.home.hidden = false;
