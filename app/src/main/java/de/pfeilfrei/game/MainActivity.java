@@ -17,7 +17,7 @@ import android.webkit.WebViewClient;
 import android.widget.FrameLayout;
 
 /**
- * Die App zeigt das Spiel (assets/index.html) in einer WebView an.
+ * Arrow Escape: Die App zeigt das Spiel (assets/index.html) in einer WebView an.
  * Über "AndroidBridge" kann das Spiel Fortschritt speichern und vibrieren.
  */
 public class MainActivity extends Activity {

@@ -1,4 +1,4 @@
-<title>Pfeilfrei</title>
+<title>Arrow Escape</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <style>
 /*@FONTS@*/
@@ -64,10 +64,10 @@ button:focus-visible{outline:2px solid var(--l2);outline-offset:2px}
 .btn.wide{width:100%}
 
 /* ---------- home ---------- */
-.screen{position:fixed;inset:0;background:var(--paper);z-index:5;
+.screen{position:fixed;inset:0;background:var(--paper);z-index:5;overflow-y:auto;overscroll-behavior:contain;
   padding-top:calc(env(safe-area-inset-top,0px) + 20px);padding-bottom:calc(env(safe-area-inset-bottom,0px) + 20px);
   padding-left:max(24px,env(safe-area-inset-left,0px));padding-right:max(24px,env(safe-area-inset-right,0px))}
-.home-in{max-width:460px;height:100%;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+.home-in{max-width:460px;min-height:100%;margin:0 auto;display:flex;flex-direction:column;gap:16px}
 .eyebrow{font-size:12px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin:0}
 .wordmark{font-weight:900;font-size:clamp(58px,18vw,92px);line-height:.86;letter-spacing:-.035em;margin:4px 0 0;text-wrap:balance}
 .wordmark span{color:var(--l1)}
@@ -83,6 +83,12 @@ button:focus-visible{outline:2px solid var(--l2);outline-offset:2px}
 .toggle .sw::after{content:"";position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:var(--surface);transition:transform .15s}
 .toggle[aria-checked="true"] .sw{background:var(--l3)}
 .toggle[aria-checked="true"] .sw::after{transform:translateX(14px)}
+
+.langs{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.langs-label{font-size:12px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+.seg{display:flex;border:1.5px solid var(--grid);border-radius:12px;padding:3px;gap:3px}
+.seg-btn{height:38px;padding:2px 14px 0;border:0;border-radius:9px;background:transparent;font-weight:700;font-size:15px;color:var(--muted)}
+.seg-btn[aria-checked="true"]{background:var(--ink);color:var(--paper)}
 
 /* ---------- result sheet ---------- */
 .dlg{position:fixed;inset:0;z-index:10;background:var(--scrim);display:flex;align-items:flex-end;justify-content:center;
@@ -105,34 +111,41 @@ button:focus-visible{outline:2px solid var(--l2);outline-offset:2px}
 
 <div id="app">
   <header class="top">
-    <button id="btnHome" class="icon-btn" aria-label="Zum Menü">
+    <button id="btnHome" class="icon-btn" data-i18n-aria="menuAria" aria-label="Menu">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h10"/></svg>
     </button>
-    <div class="badge"><span class="badge-label">Level</span><span id="lvlNum" class="badge-num">1</span></div>
-    <div id="hearts" class="hearts" role="img" aria-label="3 Herzen"></div>
+    <div class="badge"><span class="badge-label" data-i18n="level">Level</span><span id="lvlNum" class="badge-num">1</span></div>
+    <div id="hearts" class="hearts" role="img" aria-label="3 hearts"></div>
   </header>
   <main id="boardWrap">
-    <canvas id="board" aria-label="Spielfeld"></canvas>
+    <canvas id="board" data-i18n-aria="boardAria" aria-label="Game board"></canvas>
     <p id="coach" class="coach" hidden></p>
   </main>
   <footer class="foot">
-    <span id="left" class="left">0 Pfeile übrig</span>
-    <button id="btnHint" class="btn">Tipp <span id="hintCount" class="chip">3</span></button>
-    <button id="btnRestart" class="btn" aria-label="Level neu starten">Neu</button>
+    <span id="left" class="left">0 arrows left</span>
+    <button id="btnHint" class="btn"><span data-i18n="hint">Hint</span> <span id="hintCount" class="chip">3</span></button>
+    <button id="btnRestart" class="btn" data-i18n="restart" data-i18n-aria="restartAria" aria-label="Restart level">Restart</button>
   </footer>
 </div>
 
 <section id="home" class="screen">
   <div class="home-in">
-    <p class="eyebrow">Pfeil-Puzzle</p>
-    <h1 class="wordmark">Pfeil<br>frei<span>.</span></h1>
-    <p class="lede">Jeder Pfeil fährt nur in seine Richtung. Finde die Reihenfolge, in der alle das Feld verlassen, ohne zusammenzustoßen.</p>
+    <p class="eyebrow" data-i18n="eyebrow">Arrow puzzle</p>
+    <h1 class="wordmark">Arrow<br>Escape<span>.</span></h1>
+    <p class="lede" data-i18n="lede">Each arrow moves only in the direction it points. Find the order that gets every arrow off the board without a crash.</p>
     <div class="preview-wrap"><canvas id="preview" aria-hidden="true"></canvas></div>
-    <button id="btnPlay" class="btn primary wide">Level 1 spielen</button>
+    <button id="btnPlay" class="btn primary wide">Play level 1</button>
     <div class="stats" id="stats"></div>
     <div class="toggles">
-      <button id="tglSound" class="toggle" role="switch" aria-checked="true">Ton <span class="sw"></span></button>
-      <button id="tglVib" class="toggle" role="switch" aria-checked="true">Vibration <span class="sw"></span></button>
+      <button id="tglSound" class="toggle" role="switch" aria-checked="true"><span data-i18n="sound">Sound</span> <span class="sw"></span></button>
+      <button id="tglVib" class="toggle" role="switch" aria-checked="true"><span data-i18n="vibration">Vibration</span> <span class="sw"></span></button>
+    </div>
+    <div class="langs">
+      <span id="langLabel" class="langs-label" data-i18n="language">Language</span>
+      <div class="seg" role="radiogroup" aria-labelledby="langLabel">
+        <button class="seg-btn" role="radio" data-lang="en" aria-checked="true">English</button>
+        <button class="seg-btn" role="radio" data-lang="de" aria-checked="false">Deutsch</button>
+      </div>
     </div>
   </div>
 </section>
@@ -140,12 +153,12 @@ button:focus-visible{outline:2px solid var(--l2);outline-offset:2px}
 <div id="dlg" class="dlg" hidden>
   <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="dlgTitle">
     <p id="dlgEyebrow" class="eyebrow">Level 1</p>
-    <h2 id="dlgTitle">Strecke frei!</h2>
+    <h2 id="dlgTitle">All clear!</h2>
     <p id="dlgText"></p>
-    <span id="dlgReward" class="reward" hidden>+1 Tipp</span>
+    <span id="dlgReward" class="reward" hidden>+1 hint</span>
     <div class="row">
-      <button id="dlgSecondary" class="btn">Menü</button>
-      <button id="dlgPrimary" class="btn primary">Weiter</button>
+      <button id="dlgSecondary" class="btn">Menu</button>
+      <button id="dlgPrimary" class="btn primary">Next</button>
     </div>
   </div>
 </div>
@@ -320,8 +333,63 @@ const Store = {
     } catch (e) {}
   }
 };
-const progress = Object.assign({ level: 1, flawless: 0, hints: 3, sound: true, vib: true }, Store.get('progress', {}));
+const progress = Object.assign({ level: 1, flawless: 0, hints: 3, sound: true, vib: true, lang: 'en' }, Store.get('progress', {}));
 const saveProgress = () => Store.set('progress', progress);
+
+/* ---------- Sprachen (Standard: Englisch) ---------- */
+const I18N = {
+  en: {
+    eyebrow: 'Arrow puzzle',
+    lede: 'Each arrow moves only in the direction it points. Find the order that gets every arrow off the board without a crash.',
+    play: n => `Play level ${n}`,
+    solved: 'solved', flawless: 'flawless', hints: 'hints',
+    sound: 'Sound', vibration: 'Vibration', language: 'Language',
+    level: 'Level', menuAria: 'Menu', boardAria: 'Game board',
+    hint: 'Hint', restart: 'Restart', restartAria: 'Restart level',
+    left: n => n === 1 ? '1 arrow left' : `${n} arrows left`,
+    hearts: n => n === 1 ? '1 heart' : `${n} hearts`,
+    coach1: 'Tap an arrow. If its path is clear, it slides off the board.',
+    coach2: 'If another arrow is in the way, they crash. That costs a heart.',
+    coach3: 'Stuck? “Hint” shows you an arrow that can leave.',
+    winTitle: 'All clear!',
+    winText: c => c === 0 ? 'Solved without a crash.' : (c === 1 ? 'Solved with one crash.' : `Solved with ${c} crashes.`),
+    reward: '+1 hint', next: 'Next', menu: 'Menu',
+    loseTitle: 'Out of hearts',
+    loseText: 'Three crashes. The level restarts with the same arrows.',
+    retry: 'Try again',
+  },
+  de: {
+    eyebrow: 'Pfeil-Puzzle',
+    lede: 'Jeder Pfeil fährt nur in seine Richtung. Finde die Reihenfolge, in der alle das Feld verlassen, ohne zusammenzustoßen.',
+    play: n => `Level ${n} spielen`,
+    solved: 'geschafft', flawless: 'fehlerfrei', hints: 'Tipps',
+    sound: 'Ton', vibration: 'Vibration', language: 'Sprache',
+    level: 'Level', menuAria: 'Menü', boardAria: 'Spielfeld',
+    hint: 'Tipp', restart: 'Neu', restartAria: 'Level neu starten',
+    left: n => n === 1 ? '1 Pfeil übrig' : `${n} Pfeile übrig`,
+    hearts: n => n === 1 ? '1 Herz' : `${n} Herzen`,
+    coach1: 'Tippe einen Pfeil an. Ist sein Weg frei, fährt er hinaus.',
+    coach2: 'Steht ein Pfeil im Weg, gibt es einen Zusammenstoß. Das kostet ein Herz.',
+    coach3: 'Kommst du nicht weiter? „Tipp“ zeigt dir einen freien Pfeil.',
+    winTitle: 'Strecke frei!',
+    winText: c => c === 0 ? 'Ohne Zusammenstoß gelöst.' : (c === 1 ? 'Gelöst mit einem Zusammenstoß.' : `Gelöst mit ${c} Zusammenstößen.`),
+    reward: '+1 Tipp', next: 'Weiter', menu: 'Menü',
+    loseTitle: 'Alle Herzen weg',
+    loseText: 'Drei Zusammenstöße. Das Level startet neu, die Pfeile liegen wieder genauso.',
+    retry: 'Nochmal',
+  },
+};
+if (!I18N[progress.lang]) progress.lang = 'en';
+function t(key, arg){
+  const v = (I18N[progress.lang] || I18N.en)[key] ?? I18N.en[key];
+  return typeof v === 'function' ? v(arg) : v;
+}
+function applyLanguage(){
+  document.documentElement.lang = progress.lang;
+  document.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = t(el.dataset.i18n); });
+  document.querySelectorAll('[data-i18n-aria]').forEach(el => { el.setAttribute('aria-label', t(el.dataset.i18nAria)); });
+  document.querySelectorAll('.seg-btn').forEach(b => b.setAttribute('aria-checked', String(b.dataset.lang === progress.lang)));
+}
 
 /* ---------- Ton & Vibration ---------- */
 let ac = null;
@@ -569,22 +637,16 @@ function startLevel(n, restore){
 function renderHud(){
   els.lvl.textContent = G.n;
   els.hearts.innerHTML = [0, 1, 2].map(i => `<span class="${i < G.hearts ? 'full' : 'lost'}">${HEART}</span>`).join('');
-  els.hearts.setAttribute('aria-label', G.hearts === 1 ? '1 Herz' : `${G.hearts} Herzen`);
-  const left = G.board ? G.board.left : 0;
-  els.left.textContent = left === 1 ? '1 Pfeil übrig' : `${left} Pfeile übrig`;
+  els.hearts.setAttribute('aria-label', t('hearts', G.hearts));
+  els.left.textContent = t('left', G.board ? G.board.left : 0);
   els.hintCount.textContent = progress.hints;
   els.hint.disabled = progress.hints <= 0 && G.hint === -1;
 }
 
-const COACH = {
-  1: 'Tippe einen Pfeil an. Ist sein Weg frei, fährt er hinaus.',
-  2: 'Steht ein Pfeil im Weg, gibt es einen Zusammenstoß. Das kostet ein Herz.',
-  3: 'Kommst du nicht weiter? „Tipp“ zeigt dir einen freien Pfeil.',
-};
 function renderCoach(){
-  const t = COACH[G.n];
-  els.coach.hidden = !t;
-  if (t) els.coach.textContent = t;
+  const msg = G.n <= 3 ? t('coach' + G.n) : '';
+  els.coach.hidden = !msg;
+  if (msg) els.coach.textContent = msg;
 }
 
 function onBoardTap(px, py){
@@ -619,27 +681,28 @@ function win(){
   sndWin(); buzz(30);
   showDialog({
     eyebrow: `Level ${G.n}`,
-    title: 'Strecke frei!',
-    text: G.crashes === 0 ? 'Ohne Zusammenstoß gelöst.' : (G.crashes === 1 ? 'Gelöst mit einem Zusammenstoß.' : `Gelöst mit ${G.crashes} Zusammenstößen.`),
+    title: t('winTitle'),
+    text: t('winText', G.crashes),
     reward,
-    primary: ['Weiter', () => startLevel(G.n + 1)],
-    secondary: ['Menü', goHome],
+    primary: [t('next'), () => startLevel(G.n + 1)],
+    secondary: [t('menu'), goHome],
   });
 }
 function lose(){
   showDialog({
     eyebrow: `Level ${G.n}`,
-    title: 'Alle Herzen weg',
-    text: 'Drei Zusammenstöße. Das Level startet neu, die Pfeile liegen wieder genauso.',
+    title: t('loseTitle'),
+    text: t('loseText'),
     reward: false,
-    primary: ['Nochmal', () => startLevel(G.n)],
-    secondary: ['Menü', goHome],
+    primary: [t('retry'), () => startLevel(G.n)],
+    secondary: [t('menu'), goHome],
   });
 }
 let dlgActions = {};
 function showDialog(o){
   els.dEyebrow.textContent = o.eyebrow; els.dTitle.textContent = o.title; els.dText.textContent = o.text;
   els.dReward.hidden = !o.reward;
+  els.dReward.textContent = t('reward');
   els.dPrimary.textContent = o.primary[0]; els.dSecondary.textContent = o.secondary[0];
   dlgActions = { p: o.primary[1], s: o.secondary[1] };
   els.dlg.hidden = false;
@@ -673,9 +736,9 @@ function goGame(){
   requestAnimationFrame(() => { resize(); kick(); });
 }
 function renderHome(){
-  els.play.textContent = `Level ${progress.level} spielen`;
+  els.play.textContent = t('play', progress.level);
   const done = progress.level - 1;
-  els.stats.innerHTML = `<span><b>${done}</b> geschafft</span><span><b>${progress.flawless}</b> fehlerfrei</span><span><b>${progress.hints}</b> Tipps</span>`;
+  els.stats.innerHTML = `<span><b>${done}</b> ${t('solved')}</span><span><b>${progress.flawless}</b> ${t('flawless')}</span><span><b>${progress.hints}</b> ${t('hints')}</span>`;
   els.sound.setAttribute('aria-checked', String(!!progress.sound));
   els.vib.setAttribute('aria-checked', String(!!progress.vib));
 }
@@ -746,6 +809,11 @@ $('btnHome').addEventListener('click', goHome);
 els.play.addEventListener('click', () => { audio(); goGame(); });
 els.sound.addEventListener('click', () => { progress.sound = !progress.sound; saveProgress(); renderHome(); if (progress.sound) tone(660, 0.12, 'triangle', 0.08); });
 els.vib.addEventListener('click', () => { progress.vib = !progress.vib; saveProgress(); renderHome(); buzz(25); });
+document.querySelectorAll('.seg-btn').forEach(b => b.addEventListener('click', () => {
+  if (progress.lang === b.dataset.lang) return;
+  progress.lang = b.dataset.lang; saveProgress();
+  applyLanguage(); renderHome(); renderHud(); renderCoach(); buzz(10);
+}));
 document.addEventListener('keydown', e => { if (e.key === 'Escape') window.pfBack(); });
 
 // Zurück-Taste unter Android: true = erledigt, false = App schließen
@@ -762,6 +830,7 @@ new MutationObserver(() => { readColors(); kick(); }).observe(document.documentE
 if (document.fonts && document.fonts.ready) document.fonts.ready.then(kick);
 
 /* ---------- Start ---------- */
+applyLanguage();
 function boot(data){
   const d = data || {};
   if (d.screen === 'game' && d.n) {

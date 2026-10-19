@@ -4,6 +4,8 @@
 - app/src/main/assets/index.html  (vollständige Seite für die Android-App)
 - build/pfeilfrei-web.html         (Fragment ohne <html>-Gerüst für die Web-Vorschau)
 
+Die Sprache der Seite richtet sich nach der Wahl im Spiel (Standard: Englisch).
+
 Die Schriften aus web/fonts werden direkt eingebettet, damit das Spiel
 komplett offline läuft.
 """
@@ -40,7 +42,7 @@ def main() -> None:
     out_web.write_text(fragment, encoding="utf-8")
 
     page = (
-        "<!doctype html>\n<html lang=\"de\">\n<head>\n"
+        "<!doctype html>\n<html lang=\"en\">\n<head>\n"
         "<meta charset=\"utf-8\">\n"
         "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover\">\n"
         "<style>:root{color-scheme:light}[hidden]{display:none!important}</style>\n"
