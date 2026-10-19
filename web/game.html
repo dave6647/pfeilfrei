@@ -54,7 +54,7 @@ button:focus-visible{outline:2px solid var(--l2);outline-offset:2px}
   color:var(--muted);padding:6px 8px;pointer-events:none;text-wrap:balance}
 
 .foot{display:flex;align-items:center;gap:10px;padding-block:8px 14px}
-.left{flex:1;min-width:0;font-family:var(--mono);font-weight:700;font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.left{flex:1;min-width:0;font-family:var(--mono);font-weight:700;font-size:13px;line-height:1.25;color:var(--muted);font-variant-numeric:tabular-nums}
 .btn{font-weight:700;font-size:15px;letter-spacing:.01em;height:46px;padding:2px 16px 0;border-radius:12px;border:1.5px solid var(--grid);
   background:var(--surface);color:var(--ink);display:inline-flex;align-items:center;justify-content:center;gap:8px;transition:transform .08s}
 .btn:active{transform:translateY(1px)}
@@ -84,11 +84,24 @@ button:focus-visible{outline:2px solid var(--l2);outline-offset:2px}
 .toggle[aria-checked="true"] .sw{background:var(--l3)}
 .toggle[aria-checked="true"] .sw::after{transform:translateX(14px)}
 
-.langs{display:flex;align-items:center;justify-content:space-between;gap:12px}
-.langs-label{font-size:12px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
-.seg{display:flex;border:1.5px solid var(--grid);border-radius:12px;padding:3px;gap:3px}
-.seg-btn{height:38px;padding:2px 14px 0;border:0;border-radius:9px;background:transparent;font-weight:700;font-size:15px;color:var(--muted)}
-.seg-btn[aria-checked="true"]{background:var(--ink);color:var(--paper)}
+.lang-btn{width:100%;flex:none;text-align:left}
+.lang-current{display:flex;align-items:center;gap:4px;min-width:0;color:var(--muted)}
+.lang-current span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chev{width:18px;height:18px;flex:none;stroke:currentColor;fill:none;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+
+/* ---------- language sheet: the list is drawn as a metro line with one stop per language ---------- */
+.lang-sheet{max-height:calc(100% - 24px);overflow-y:auto}
+.sheet-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.sheet .sheet-title{font-size:28px}
+.lang-list{position:relative;display:flex;flex-direction:column;padding-block:4px}
+.lang-list::before{content:"";position:absolute;left:11px;top:30px;bottom:30px;width:5px;border-radius:3px;background:var(--l2)}
+.lang-row{position:relative;display:flex;align-items:center;gap:16px;min-height:52px;padding:2px 4px 0 0;border:0;background:transparent;
+  text-align:left;font-size:18px;font-weight:700;color:var(--ink)}
+.lang-row .stop{width:27px;height:27px;flex:none;border-radius:50%;background:var(--surface);border:4.5px solid var(--l2);display:grid;place-items:center;margin-top:-2px}
+.lang-row[aria-checked="true"] .stop{background:var(--l2)}
+.lang-row[aria-checked="true"] .stop::after{content:"";width:9px;height:9px;border-radius:50%;background:var(--surface)}
+.lang-row .lang-name{flex:1;min-width:0}
+.lang-row[aria-checked="false"] .lang-name{font-weight:400}
 
 /* ---------- result sheet ---------- */
 .dlg{position:fixed;inset:0;z-index:10;background:var(--scrim);display:flex;align-items:flex-end;justify-content:center;
@@ -104,6 +117,12 @@ button:focus-visible{outline:2px solid var(--l2);outline-offset:2px}
 .row .btn{flex:1}
 .row .btn.primary{flex:2}
 
+@media (max-height: 700px){
+  .home-in{gap:12px}
+  .wordmark{font-size:clamp(46px,14vw,72px)}
+  .lede{font-size:15.5px}
+  .preview-wrap{min-height:72px}
+}
 @media (prefers-reduced-motion: reduce){
   .sheet,.hearts.shake{animation:none}
 }
@@ -140,13 +159,10 @@ button:focus-visible{outline:2px solid var(--l2);outline-offset:2px}
       <button id="tglSound" class="toggle" role="switch" aria-checked="true"><span data-i18n="sound">Sound</span> <span class="sw"></span></button>
       <button id="tglVib" class="toggle" role="switch" aria-checked="true"><span data-i18n="vibration">Vibration</span> <span class="sw"></span></button>
     </div>
-    <div class="langs">
-      <span id="langLabel" class="langs-label" data-i18n="language">Language</span>
-      <div class="seg" role="radiogroup" aria-labelledby="langLabel">
-        <button class="seg-btn" role="radio" data-lang="en" aria-checked="true">English</button>
-        <button class="seg-btn" role="radio" data-lang="de" aria-checked="false">Deutsch</button>
-      </div>
-    </div>
+    <button id="btnLang" class="toggle lang-btn" aria-haspopup="dialog">
+      <span data-i18n="language">Language</span>
+      <span class="lang-current"><span id="langName">English</span><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></span>
+    </button>
   </div>
 </section>
 
@@ -160,6 +176,16 @@ button:focus-visible{outline:2px solid var(--l2);outline-offset:2px}
       <button id="dlgSecondary" class="btn">Menu</button>
       <button id="dlgPrimary" class="btn primary">Next</button>
     </div>
+  </div>
+</div>
+
+<div id="langDlg" class="dlg" hidden>
+  <div class="sheet lang-sheet" role="dialog" aria-modal="true" aria-labelledby="langTitle">
+    <div class="sheet-head">
+      <h2 id="langTitle" class="sheet-title" data-i18n="languageTitle">Choose language</h2>
+      <button id="langClose" class="btn" data-i18n="close">Done</button>
+    </div>
+    <div id="langList" class="lang-list" role="radiogroup" aria-labelledby="langTitle"></div>
   </div>
 </div>
 
@@ -336,7 +362,19 @@ const Store = {
 const progress = Object.assign({ level: 1, flawless: 0, hints: 3, sound: true, vib: true, lang: 'en' }, Store.get('progress', {}));
 const saveProgress = () => Store.set('progress', progress);
 
-/* ---------- Sprachen (Standard: Englisch) ---------- */
+/* ---------- Sprachen (Standard: Englisch) ----------
+   REGEL: Jeder sichtbare Text steht hier und muss in ALLEN Sprachen vorhanden sein.
+   tools/test_i18n.js prüft das bei jedem Build. */
+// I18N START
+const LANGS = [
+  { code: 'id', name: 'Bahasa Indonesia', html: 'id' },
+  { code: 'de', name: 'Deutsch', html: 'de' },
+  { code: 'en', name: 'English', html: 'en' },
+  { code: 'es', name: 'Español', html: 'es' },
+  { code: 'fr', name: 'Français', html: 'fr' },
+  { code: 'pt', name: 'Português (Brasil)', html: 'pt-BR' },
+  { code: 'tr', name: 'Türkçe', html: 'tr' },
+];
 const I18N = {
   en: {
     eyebrow: 'Arrow puzzle',
@@ -344,6 +382,7 @@ const I18N = {
     play: n => `Play level ${n}`,
     solved: 'solved', flawless: 'flawless', hints: 'hints',
     sound: 'Sound', vibration: 'Vibration', language: 'Language',
+    languageTitle: 'Choose language', close: 'Done',
     level: 'Level', menuAria: 'Menu', boardAria: 'Game board',
     hint: 'Hint', restart: 'Restart', restartAria: 'Restart level',
     left: n => n === 1 ? '1 arrow left' : `${n} arrows left`,
@@ -364,6 +403,7 @@ const I18N = {
     play: n => `Level ${n} spielen`,
     solved: 'geschafft', flawless: 'fehlerfrei', hints: 'Tipps',
     sound: 'Ton', vibration: 'Vibration', language: 'Sprache',
+    languageTitle: 'Sprache wählen', close: 'Fertig',
     level: 'Level', menuAria: 'Menü', boardAria: 'Spielfeld',
     hint: 'Tipp', restart: 'Neu', restartAria: 'Level neu starten',
     left: n => n === 1 ? '1 Pfeil übrig' : `${n} Pfeile übrig`,
@@ -378,17 +418,125 @@ const I18N = {
     loseText: 'Drei Zusammenstöße. Das Level startet neu, die Pfeile liegen wieder genauso.',
     retry: 'Nochmal',
   },
+  es: {
+    eyebrow: 'Puzle de flechas',
+    lede: 'Cada flecha solo avanza en la dirección a la que apunta. Encuentra el orden para sacarlas todas del tablero sin que choquen.',
+    play: n => `Jugar nivel ${n}`,
+    solved: 'superados', flawless: 'perfectos', hints: 'pistas',
+    sound: 'Sonido', vibration: 'Vibración', language: 'Idioma',
+    languageTitle: 'Elige el idioma', close: 'Listo',
+    level: 'Nivel', menuAria: 'Menú', boardAria: 'Tablero',
+    hint: 'Pista', restart: 'Reiniciar', restartAria: 'Reiniciar nivel',
+    left: n => n === 1 ? 'Queda 1 flecha' : `Quedan ${n} flechas`,
+    hearts: n => n === 1 ? '1 corazón' : `${n} corazones`,
+    coach1: 'Toca una flecha. Si su camino está libre, sale del tablero.',
+    coach2: 'Si otra flecha se interpone, chocan. Eso cuesta un corazón.',
+    coach3: '¿No sabes cómo seguir? «Pista» te muestra una flecha que puede salir.',
+    winTitle: '¡Vía libre!',
+    winText: c => c === 0 ? 'Resuelto sin ningún choque.' : (c === 1 ? 'Resuelto con un choque.' : `Resuelto con ${c} choques.`),
+    reward: '+1 pista', next: 'Siguiente', menu: 'Menú',
+    loseTitle: 'Sin corazones',
+    loseText: 'Tres choques. El nivel se reinicia con las mismas flechas.',
+    retry: 'Reintentar',
+  },
+  pt: {
+    eyebrow: 'Quebra-cabeça de setas',
+    lede: 'Cada seta só anda na direção para onde aponta. Descubra a ordem para tirar todas do tabuleiro sem nenhuma batida.',
+    play: n => `Jogar nível ${n}`,
+    solved: 'concluídos', flawless: 'perfeitos', hints: 'dicas',
+    sound: 'Som', vibration: 'Vibração', language: 'Idioma',
+    languageTitle: 'Escolha o idioma', close: 'Pronto',
+    level: 'Nível', menuAria: 'Menu', boardAria: 'Tabuleiro',
+    hint: 'Dica', restart: 'Reiniciar', restartAria: 'Reiniciar nível',
+    left: n => n === 1 ? 'Resta 1 seta' : `Restam ${n} setas`,
+    hearts: n => n === 1 ? '1 coração' : `${n} corações`,
+    coach1: 'Toque em uma seta. Se o caminho estiver livre, ela sai do tabuleiro.',
+    coach2: 'Se outra seta estiver no caminho, elas batem. Isso custa um coração.',
+    coach3: 'Travou? “Dica” mostra uma seta que pode sair.',
+    winTitle: 'Caminho livre!',
+    winText: c => c === 0 ? 'Resolvido sem nenhuma batida.' : (c === 1 ? 'Resolvido com uma batida.' : `Resolvido com ${c} batidas.`),
+    reward: '+1 dica', next: 'Próximo', menu: 'Menu',
+    loseTitle: 'Sem corações',
+    loseText: 'Três batidas. O nível recomeça com as mesmas setas.',
+    retry: 'Tentar de novo',
+  },
+  fr: {
+    eyebrow: 'Puzzle de flèches',
+    lede: 'Chaque flèche avance seulement dans la direction qu’elle indique. Trouve l’ordre qui fait sortir toutes les flèches du plateau sans collision.',
+    play: n => `Jouer le niveau ${n}`,
+    solved: 'réussis', flawless: 'parfaits', hints: 'indices',
+    sound: 'Son', vibration: 'Vibration', language: 'Langue',
+    languageTitle: 'Choisir la langue', close: 'OK',
+    level: 'Niveau', menuAria: 'Menu', boardAria: 'Plateau de jeu',
+    hint: 'Indice', restart: 'Rejouer', restartAria: 'Recommencer le niveau',
+    left: n => n === 1 ? '1 flèche restante' : `${n} flèches restantes`,
+    hearts: n => n === 1 ? '1 cœur' : `${n} cœurs`,
+    coach1: 'Touche une flèche. Si son chemin est libre, elle sort du plateau.',
+    coach2: 'Si une autre flèche bloque le passage, elles se percutent. Tu perds un cœur.',
+    coach3: 'Besoin d’aide ? « Indice » te montre une flèche qui peut sortir.',
+    winTitle: 'Voie libre !',
+    winText: c => c === 0 ? 'Résolu sans aucune collision.' : (c === 1 ? 'Résolu avec une collision.' : `Résolu avec ${c} collisions.`),
+    reward: '+1 indice', next: 'Suivant', menu: 'Menu',
+    loseTitle: 'Plus de cœurs',
+    loseText: 'Trois collisions. Le niveau recommence avec les mêmes flèches.',
+    retry: 'Réessayer',
+  },
+  id: {
+    eyebrow: 'Teka-teki panah',
+    lede: 'Setiap panah hanya bergerak ke arah yang ditunjuknya. Temukan urutan yang tepat agar semua panah keluar dari papan tanpa bertabrakan.',
+    play: n => `Main level ${n}`,
+    solved: 'selesai', flawless: 'sempurna', hints: 'petunjuk',
+    sound: 'Suara', vibration: 'Getar', language: 'Bahasa',
+    languageTitle: 'Pilih bahasa', close: 'Selesai',
+    level: 'Level', menuAria: 'Menu', boardAria: 'Papan permainan',
+    hint: 'Petunjuk', restart: 'Ulangi', restartAria: 'Ulangi level',
+    left: n => `${n} panah tersisa`,
+    hearts: n => `${n} nyawa`,
+    coach1: 'Ketuk sebuah panah. Jika jalurnya kosong, panah akan keluar dari papan.',
+    coach2: 'Jika ada panah lain yang menghalangi, keduanya bertabrakan. Kamu kehilangan satu nyawa.',
+    coach3: 'Buntu? “Petunjuk” menunjukkan panah yang bisa keluar.',
+    winTitle: 'Jalur bebas!',
+    winText: c => c === 0 ? 'Selesai tanpa tabrakan.' : (c === 1 ? 'Selesai dengan satu tabrakan.' : `Selesai dengan ${c} tabrakan.`),
+    reward: '+1 petunjuk', next: 'Lanjut', menu: 'Menu',
+    loseTitle: 'Nyawa habis',
+    loseText: 'Tiga kali tabrakan. Level dimulai ulang dengan panah yang sama.',
+    retry: 'Coba lagi',
+  },
+  tr: {
+    eyebrow: 'Ok bulmacası',
+    lede: 'Her ok yalnızca gösterdiği yöne gider. Tüm okları çarpışmadan tahtadan çıkaracak sırayı bul.',
+    play: n => `${n}. seviyeyi oyna`,
+    solved: 'tamamlandı', flawless: 'kusursuz', hints: 'ipucu',
+    sound: 'Ses', vibration: 'Titreşim', language: 'Dil',
+    languageTitle: 'Dil seç', close: 'Tamam',
+    level: 'Seviye', menuAria: 'Menü', boardAria: 'Oyun tahtası',
+    hint: 'İpucu', restart: 'Yeniden', restartAria: 'Seviyeyi yeniden başlat',
+    left: n => `${n} ok kaldı`,
+    hearts: n => `${n} can`,
+    coach1: 'Bir oka dokun. Yolu açıksa tahtadan çıkar.',
+    coach2: 'Yolda başka bir ok varsa çarpışırlar ve bir can kaybedersin.',
+    coach3: 'Takıldın mı? “İpucu” çıkabilecek bir oku gösterir.',
+    winTitle: 'Yol açık!',
+    winText: c => c === 0 ? 'Hiç çarpışmadan çözüldü.' : (c === 1 ? 'Bir çarpışmayla çözüldü.' : `${c} çarpışmayla çözüldü.`),
+    reward: '+1 ipucu', next: 'Devam', menu: 'Menü',
+    loseTitle: 'Canın kalmadı',
+    loseText: 'Üç çarpışma. Seviye aynı oklarla yeniden başlıyor.',
+    retry: 'Tekrar dene',
+  },
 };
+// I18N END
 if (!I18N[progress.lang]) progress.lang = 'en';
 function t(key, arg){
   const v = (I18N[progress.lang] || I18N.en)[key] ?? I18N.en[key];
   return typeof v === 'function' ? v(arg) : v;
 }
+const langInfo = () => LANGS.find(l => l.code === progress.lang) || LANGS.find(l => l.code === 'en');
 function applyLanguage(){
-  document.documentElement.lang = progress.lang;
+  document.documentElement.lang = langInfo().html;
   document.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = t(el.dataset.i18n); });
   document.querySelectorAll('[data-i18n-aria]').forEach(el => { el.setAttribute('aria-label', t(el.dataset.i18nAria)); });
-  document.querySelectorAll('.seg-btn').forEach(b => b.setAttribute('aria-checked', String(b.dataset.lang === progress.lang)));
+  const name = document.getElementById('langName');
+  if (name) { name.textContent = langInfo().name; name.lang = langInfo().html; }
 }
 
 /* ---------- Ton & Vibration ---------- */
@@ -809,15 +957,39 @@ $('btnHome').addEventListener('click', goHome);
 els.play.addEventListener('click', () => { audio(); goGame(); });
 els.sound.addEventListener('click', () => { progress.sound = !progress.sound; saveProgress(); renderHome(); if (progress.sound) tone(660, 0.12, 'triangle', 0.08); });
 els.vib.addEventListener('click', () => { progress.vib = !progress.vib; saveProgress(); renderHome(); buzz(25); });
-document.querySelectorAll('.seg-btn').forEach(b => b.addEventListener('click', () => {
-  if (progress.lang === b.dataset.lang) return;
-  progress.lang = b.dataset.lang; saveProgress();
-  applyLanguage(); renderHome(); renderHud(); renderCoach(); buzz(10);
-}));
+/* ---------- Sprachauswahl ---------- */
+const langDlg = $('langDlg'), langList = $('langList');
+function renderLangList(){
+  langList.innerHTML = LANGS.map(l =>
+    `<button class="lang-row" role="radio" aria-checked="${l.code === progress.lang}" data-lang="${l.code}" lang="${l.html}">` +
+    `<span class="stop" aria-hidden="true"></span><span class="lang-name">${l.name}</span></button>`).join('');
+}
+function openLang(){
+  renderLangList();
+  langDlg.hidden = false;
+  const cur = langList.querySelector('[aria-checked="true"]');
+  setTimeout(() => cur && cur.focus({ preventScroll: true }), 50);
+}
+function closeLang(){ langDlg.hidden = true; $('btnLang').focus({ preventScroll: true }); }
+function setLang(code){
+  if (!I18N[code] || progress.lang === code) return;
+  progress.lang = code; saveProgress();
+  applyLanguage(); renderHome(); renderHud(); renderCoach(); renderLangList(); buzz(10);
+}
+$('btnLang').addEventListener('click', openLang);
+$('langClose').addEventListener('click', closeLang);
+langDlg.addEventListener('click', e => { if (e.target === langDlg) closeLang(); });
+langList.addEventListener('click', e => {
+  const row = e.target.closest('.lang-row');
+  if (!row) return;
+  setLang(row.dataset.lang);
+  setTimeout(closeLang, 260);
+});
 document.addEventListener('keydown', e => { if (e.key === 'Escape') window.pfBack(); });
 
 // Zurück-Taste unter Android: true = erledigt, false = App schließen
 window.pfBack = function(){
+  if (!langDlg.hidden) { closeLang(); return true; }
   if (!els.dlg.hidden || G.screen === 'game') { goHome(); return true; }
   return false;
 };

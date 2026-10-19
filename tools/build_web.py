@@ -13,22 +13,27 @@ import base64
 import pathlib
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
+LATIN = ("U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,"
+         "U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD")
+# latin-ext: u. a. türkische Zeichen (ğ, ş, İ)
+LATIN_EXT = ("U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,"
+             "U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF")
 FONTS = [
-    ("Overpass", 400, "overpass-latin-400-normal.woff2"),
-    ("Overpass", 700, "overpass-latin-700-normal.woff2"),
-    ("Overpass", 800, "overpass-latin-800-normal.woff2"),
-    ("Overpass", 900, "overpass-latin-900-normal.woff2"),
-    ("Overpass Mono", 700, "overpass-mono-latin-700-normal.woff2"),
+    (family, weight, f"{stem}-{subset}-{weight}-normal.woff2", rng)
+    for family, stem, weights in [("Overpass", "overpass", (400, 700, 800, 900)),
+                                  ("Overpass Mono", "overpass-mono", (700,))]
+    for weight in weights
+    for subset, rng in (("latin", LATIN), ("latin-ext", LATIN_EXT))
 ]
 
 
 def font_css() -> str:
     parts = []
-    for family, weight, file in FONTS:
+    for family, weight, file, rng in FONTS:
         data = base64.b64encode((ROOT / "web" / "fonts" / file).read_bytes()).decode()
         parts.append(
             f'@font-face{{font-family:"{family}";font-style:normal;font-weight:{weight};'
-            f'font-display:swap;src:url(data:font/woff2;base64,{data}) format("woff2")}}'
+            f'font-display:swap;src:url(data:font/woff2;base64,{data}) format("woff2");unicode-range:{rng}}}'
         )
     return "\n".join(parts)
 

@@ -4,7 +4,7 @@ Ein Pfeil-Puzzle für Android im Metroplan-Look. Jeder Pfeil fährt nur in seine
 Ziel ist es, alle Pfeile in der richtigen Reihenfolge vom Feld zu schicken, ohne dass sie zusammenstoßen.
 Drei Zusammenstöße kosten das Level.
 
-Sprachen: Englisch (Standard) und Deutsch, umschaltbar im Menü.
+Sprachen: Englisch (Standard), Deutsch, Spanisch, Portugiesisch (Brasilien), Französisch, Indonesisch und Türkisch. Umschaltbar im Menü unter „Language“.
 
 ## App aufs Handy holen
 
@@ -23,13 +23,19 @@ Neue Versionen lassen sich einfach über die alte installieren, der Spielstand b
 | `web/fonts/` | Schrift Overpass (SIL Open Font License), wird eingebettet. |
 | `tools/build_web.py` | Erzeugt daraus `app/src/main/assets/index.html` für die App. |
 | `tools/test_levels.js` | Prüft, dass alle Level lösbar sind. |
+| `tools/test_i18n.js` | Prüft, dass jeder Text in allen Sprachen übersetzt ist. |
 | `app/` | Android-Hülle: zeigt das Spiel in einer WebView, speichert Fortschritt, vibriert. |
 | `.github/workflows/build.yml` | Baut die APK auf GitHub und veröffentlicht sie als Release. |
 
-## Neue Sprache hinzufügen
+## Texte und Sprachen
 
-In `web/game.html` im Objekt `I18N` einen Block nach dem Muster von `en` anlegen
-und im Menü einen weiteren Knopf mit `data-lang="…"` ergänzen.
+Alle sichtbaren Texte stehen in `web/game.html` im Objekt `I18N`.
+**Jeder neue oder geänderte Text muss in allen Sprachen eingetragen werden.**
+`node tools/test_i18n.js` prüft das und läuft bei jedem Build mit: Fehlt eine Übersetzung, wird keine APK gebaut.
+
+Neue Sprache: in `LANGS` eintragen (Code, Name in der eigenen Sprache, HTML-Sprachcode)
+und in `I18N` einen Block nach dem Muster von `en` anlegen.
+Für Schriften außerhalb des lateinischen Alphabets muss zusätzlich eine passende Schrift eingebettet werden (`tools/build_web.py`).
 
 ## Level
 

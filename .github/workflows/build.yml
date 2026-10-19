@@ -29,6 +29,9 @@ jobs:
       - name: Spiel-Dateien erzeugen
         run: python3 tools/build_web.py
 
+      - name: Übersetzungen prüfen
+        run: node tools/test_i18n.js
+
       - name: Level prüfen
         run: node tools/test_levels.js 300
 
