@@ -158,6 +158,22 @@ button:focus-visible{outline:2px solid var(--l2);outline-offset:2px}
 .lang-row .lang-name{flex:1;min-width:0}
 .lang-row[aria-checked="false"] .lang-name{font-weight:400}
 
+/* ---------- Debug-Fenster (nur Test-APK / Browser mit ?debug): Modus + Level wählen und hinspringen ---------- */
+.dbg-sheet{max-height:calc(100% - 24px);overflow-y:auto}
+.dbg-modes{display:flex;gap:8px}
+.dbg-mode{--line:var(--l3);flex:1;min-width:0;position:relative;overflow:hidden;height:46px;padding:2px 6px 0 11px;border-radius:12px;border:1.5px solid var(--grid);
+  background:var(--surface);color:var(--ink);font-weight:800;font-size:14px;white-space:nowrap;text-overflow:ellipsis}
+.dbg-mode::before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--line)}
+.dbg-mode.hardcore{--line:var(--signal)}
+.dbg-mode.blitz{--line:var(--hint)}
+.dbg-mode[aria-checked="true"]{background:var(--ink);border-color:var(--ink);color:var(--paper)}
+.dbg-field{display:flex;flex-direction:column;gap:6px;margin-top:4px}
+.dbg-input{width:100%;height:56px;border-radius:12px;border:1.5px solid var(--grid);background:var(--paper);color:var(--ink);
+  font-family:var(--mono);font-weight:700;font-size:26px;padding:3px 14px 0;-webkit-user-select:text;user-select:text;font-variant-numeric:tabular-nums}
+.dbg-input:focus{outline:2px solid var(--l2);outline-offset:1px}
+.dbg-chips{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
+.dbg-chips .btn{height:40px;padding:2px 0 0;font-family:var(--mono);font-size:14px}
+
 /* ---------- result sheet ---------- */
 .dlg{position:fixed;inset:0;z-index:10;background:var(--scrim);display:flex;align-items:flex-end;justify-content:center;
   -webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)}
@@ -278,6 +294,11 @@ button:focus-visible{outline:2px solid var(--l2);outline-offset:2px}
         <span data-i18n="language">Language</span>
         <span class="lang-current"><span id="langName">English</span><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></span>
       </button>
+      <!-- Nur in der Test-APK (vollTest) und im Browser mit ?debug -->
+      <button id="btnDebug" class="toggle lang-btn" aria-haspopup="dialog" hidden>
+        <span data-i18n="debug">Debug</span>
+        <span class="lang-current"><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></span>
+      </button>
     </div>
   </div>
 </div>
@@ -289,6 +310,29 @@ button:focus-visible{outline:2px solid var(--l2);outline-offset:2px}
       <button id="langClose" class="btn" data-i18n="close">Done</button>
     </div>
     <div id="langList" class="lang-list" role="radiogroup" aria-labelledby="langTitle"></div>
+  </div>
+</div>
+
+<!-- Debug: auf ein beliebiges Level springen (nur Test-APK / Browser mit ?debug) -->
+<div id="dbgDlg" class="dlg" hidden>
+  <div class="sheet dbg-sheet" role="dialog" aria-modal="true" aria-labelledby="dbgTitle">
+    <div class="sheet-head">
+      <h2 id="dbgTitle" class="sheet-title" data-i18n="debug">Debug</h2>
+      <button id="dbgClose" class="btn" data-i18n="close">Done</button>
+    </div>
+    <div id="dbgModes" class="dbg-modes" role="radiogroup" aria-labelledby="dbgTitle">
+      <button class="dbg-mode" role="radio" aria-checked="true" data-mode="normal" data-i18n="classic">Classic</button>
+      <button class="dbg-mode hardcore" role="radio" aria-checked="false" data-mode="hc" data-i18n="hardcore">Hardcore</button>
+      <button class="dbg-mode blitz" role="radio" aria-checked="false" data-mode="blitz" data-i18n="blitz">Blitz</button>
+    </div>
+    <label class="dbg-field"><span class="eyebrow" data-i18n="level">Level</span>
+      <input id="dbgLevel" class="dbg-input" type="number" inputmode="numeric" min="1" max="99999" step="1" enterkeyhint="go" autocomplete="off">
+    </label>
+    <div id="dbgChips" class="dbg-chips">
+      <button class="btn" data-n="10">10</button><button class="btn" data-n="25">25</button><button class="btn" data-n="50">50</button>
+      <button class="btn" data-n="100">100</button><button class="btn" data-n="250">250</button><button class="btn" data-n="1000">1000</button>
+    </div>
+    <button id="dbgGo" class="btn primary wide" data-i18n="hcStart">Start</button>
   </div>
 </div>
 
@@ -499,6 +543,9 @@ const Edition = {
   price: hasBilling && typeof bridge.price === 'function' ? String(bridge.price() || '') : '',
 };
 const canPlay = (mode, n) => Edition.full || (mode === 'normal' && n <= FREE_LEVELS);
+// Debug-Fenster (Einstellungen → Debug: auf ein beliebiges Level springen). Vorläufig, nur zum Testen:
+// in der Test-APK (Flavor vollTest, AndroidBridge.isTest()) und im Browser mit „?debug“ – nie in der Store-APK.
+const DEBUG = bridge ? typeof bridge.isTest === 'function' && !!bridge.isTest() : /[?&]debug\b/.test(location.search);
 
 /* ---------- Sprachen (Standard: Englisch) ----------
    REGEL: Jeder sichtbare Text steht hier und muss in ALLEN Sprachen vorhanden sein.
@@ -567,6 +614,7 @@ const I18N = {
     buyPending: 'Your payment is still being processed. The full version unlocks as soon as it’s complete.',
     buyError: 'Buying isn’t possible right now. Check your internet connection and Google Play, then try again.',
     ok: 'OK',
+    debug: 'Debug', // nur Test-APK
   },
   de: {
     classic: 'Klassisch', classicPitch: '3 Herzen pro Level', settings: 'Einstellungen',
@@ -621,6 +669,7 @@ const I18N = {
     buyPending: 'Deine Zahlung wird noch bearbeitet. Die Vollversion wird freigeschaltet, sobald sie abgeschlossen ist.',
     buyError: 'Kaufen geht gerade nicht. Prüfe deine Internetverbindung und Google Play und versuch es noch einmal.',
     ok: 'OK',
+    debug: 'Debug', // nur Test-APK
   },
   es: {
     classic: 'Clásico', classicPitch: '3 corazones por nivel', settings: 'Ajustes',
@@ -675,6 +724,7 @@ const I18N = {
     buyPending: 'Tu pago aún se está procesando. La versión completa se desbloqueará en cuanto termine.',
     buyError: 'Ahora mismo no se puede comprar. Revisa tu conexión a internet y Google Play, y vuelve a intentarlo.',
     ok: 'OK',
+    debug: 'Debug', // nur Test-APK
   },
   pt: {
     classic: 'Clássico', classicPitch: '3 corações por nível', settings: 'Configurações',
@@ -729,6 +779,7 @@ const I18N = {
     buyPending: 'Seu pagamento ainda está sendo processado. A versão completa será liberada assim que ele for concluído.',
     buyError: 'Não é possível comprar agora. Verifique sua conexão com a internet e o Google Play e tente de novo.',
     ok: 'OK',
+    debug: 'Debug', // nur Test-APK
   },
   fr: {
     classic: 'Classique', classicPitch: '3 cœurs par niveau', settings: 'Réglages',
@@ -783,6 +834,7 @@ const I18N = {
     buyPending: 'Ton paiement est en cours de traitement. La version complète sera débloquée dès qu’il sera finalisé.',
     buyError: 'Achat impossible pour le moment. Vérifie ta connexion Internet et Google Play, puis réessaie.',
     ok: 'OK',
+    debug: 'Debug', // nur Test-APK
   },
   id: {
     classic: 'Klasik', classicPitch: '3 nyawa per level', settings: 'Pengaturan',
@@ -837,6 +889,7 @@ const I18N = {
     buyPending: 'Pembayaranmu masih diproses. Versi lengkap akan terbuka setelah pembayaran selesai.',
     buyError: 'Pembelian belum bisa dilakukan. Periksa koneksi internet dan Google Play, lalu coba lagi.',
     ok: 'OK',
+    debug: 'Debug', // nur Test-APK
   },
   tr: {
     classic: 'Klasik', classicPitch: 'Her seviyede 3 can', settings: 'Ayarlar',
@@ -891,6 +944,7 @@ const I18N = {
     buyPending: 'Ödemen hâlâ işleniyor. Ödeme tamamlanınca tam sürüm açılır.',
     buyError: 'Şu anda satın alınamıyor. İnternet bağlantını ve Google Play’i kontrol edip tekrar dene.',
     ok: 'Tamam',
+    debug: 'Debug', // nur Test-APK
   },
 };
 // I18N END
@@ -1835,10 +1889,54 @@ langList.addEventListener('click', e => {
   setLang(row.dataset.lang);
   setTimeout(closeLang, 260);
 });
+/* ---------- Debug: auf ein beliebiges Level springen (nur wenn DEBUG) ----------
+   Setzt den Spielstand des gewählten Modus auf Level N und startet es frisch:
+   Klassisch → progress.level; Hardcore → hc.level mit 5 vollen Herzen; Blitz → neuer Durchgang ab Level N mit 30 s.
+   Was danach gespielt wird, zählt ganz normal (auch für Rekorde). */
+const dbgDlg = $('dbgDlg'), dbgModes = $('dbgModes'), dbgLevel = $('dbgLevel');
+let dbgMode = 'normal';
+const dbgCurrent = m => m === 'hc' ? progress.hc.level : m === 'blitz' ? (validBlitzRun(progress.run.blitz) || { n: 1 }).n : progress.level;
+function dbgSelect(m){
+  dbgMode = m;
+  dbgModes.querySelectorAll('.dbg-mode').forEach(b => b.setAttribute('aria-checked', String(b.dataset.mode === m)));
+  dbgLevel.value = dbgCurrent(m);
+}
+function openDebug(){ dbgSelect(dbgMode); dbgDlg.hidden = false; setTimeout(() => $('dbgClose').focus({ preventScroll: true }), 50); }
+function closeDebug(){ dbgLevel.blur(); dbgDlg.hidden = true; $('btnDebug').focus({ preventScroll: true }); }
+function debugJump(){
+  const n = Math.min(99999, parseInt(dbgLevel.value, 10));
+  if (!(n >= 1)) { dbgLevel.focus(); return; }
+  dbgLevel.blur();
+  if (dbgMode === 'hc') {
+    Object.assign(progress.hc, { level: n, hearts: HC_HEARTS, newBest: false });
+    progress.run.hc = null;
+  } else if (dbgMode === 'blitz') {
+    progress.run.blitz = { n, seed: randomSeed(), removed: [], hearts: 3, crashes: 0, hint: -1, time: BLITZ_START };
+  } else {
+    progress.level = n;
+    progress.run.normal = null;
+  }
+  saveProgress();
+  G.board = null; // goGame startet dann sicher frisch aus dem neuen Stand
+  dbgDlg.hidden = true; setDlg.hidden = true; buzz(15);
+  goGame(dbgMode);
+}
+if (DEBUG) {
+  $('btnDebug').hidden = false;
+  $('btnDebug').addEventListener('click', openDebug);
+  $('dbgClose').addEventListener('click', closeDebug);
+  dbgDlg.addEventListener('click', e => { if (e.target === dbgDlg) closeDebug(); });
+  dbgModes.addEventListener('click', e => { const b = e.target.closest('.dbg-mode'); if (b) dbgSelect(b.dataset.mode); });
+  $('dbgChips').addEventListener('click', e => { const b = e.target.closest('[data-n]'); if (b) dbgLevel.value = b.dataset.n; });
+  dbgLevel.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); debugJump(); } });
+  $('dbgGo').addEventListener('click', debugJump);
+}
+
 document.addEventListener('keydown', e => { if (e.key === 'Escape') window.pfBack(); });
 
 // Zurück-Taste unter Android: true = erledigt, false = App schließen
 window.pfBack = function(){
+  if (!dbgDlg.hidden) { closeDebug(); return true; }
   if (!langDlg.hidden) { closeLang(); return true; }
   if (!setDlg.hidden) { closeSettings(); return true; }
   if (!els.dlg.hidden || G.screen === 'game') { goHome(); return true; }

@@ -311,6 +311,12 @@ public class MainActivity extends Activity {
             return activity.isFull();
         }
 
+        /** Test-APK (Flavor vollTest)? Dann zeigt das Spiel unter Einstellungen das Debug-Fenster (Level wählen). */
+        @JavascriptInterface
+        public boolean isTest() {
+            return BuildConfig.TEST_FULL;
+        }
+
         /** Preis der Vollversion von Google Play (z. B. "1,99 €"), leer solange unbekannt. */
         @JavascriptInterface
         public String price() {
