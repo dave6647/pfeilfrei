@@ -36,9 +36,19 @@ jobs:
         run: node tools/test_levels.js 300
 
       - name: APKs bauen (gratis + voll-test)
-        run: gradle assembleRelease --no-daemon --stacktrace
+        run: |
+          set -o pipefail
+          gradle assembleRelease --no-daemon --stacktrace 2>&1 | tee gradle.log
         env:
           VERSION_CODE: ${{ github.run_number }}
+
+      # Fehler als Hinweis (Annotation) ausgeben: so sind sie auch über die API lesbar, ohne die Log-Datei
+      - name: Build-Fehler melden
+        if: failure()
+        run: |
+          [ -f gradle.log ] || exit 0
+          msg=$(grep -E "error:|warning: \[|What went wrong|^> |^e: |requires|Could not|Execution failed|Duplicate class" gradle.log | head -40 | sed ':a;N;$!ba;s/%/%25/g;s/\r//g;s/\n/%0A/g')
+          echo "::error title=Gradle::${msg}"
 
       - name: APKs benennen
         run: |
