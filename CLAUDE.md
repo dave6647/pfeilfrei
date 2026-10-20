@@ -35,8 +35,11 @@ GitHub Actions baut bei jedem Push auf `main` eine APK und veröffentlicht sie a
 
 ## Fußleiste im Spiel
 
-- Enthält „N Pfeile übrig“, Lupe (nur große Felder), Raster, Tipp, Neu. Auf 360 px ist sie damit voll:
-  `fitFooter()` macht erst „Neu“ zum Symbol (`compact`), dann „Tipp“ zur Glühbirne (`tight`).
+- Nur Knöpfe (die Anzeige „N Pfeile übrig“ ist seit Build 16 weg): „Modus neu“ (nur Klassisch/Hardcore), Lupe (nur große Felder),
+  Raster, Tipp, Neu. Text-Knöpfe teilen sich die Breite. Auf 360 px ist sie damit voll: `fitFooter()` macht erst „Neu“ zum Symbol
+  (`compact`), dann „Modus neu“ (`mini`), zuletzt „Tipp“ zur Glühbirne (`tight`).
+- „Modus neu“ setzt den ganzen Modus auf Level 1 zurück (Klassisch: auch Tipps auf 3 und „fehlerfrei“ auf 0; Hardcore: wie Game over,
+  Rekord bleibt) – immer mit Nachfrage, „Weiterspielen“ ist dort der hervorgehobene Knopf.
 - Änderungen dort in allen 7 Sprachen × 3 Modi auf 360 px testen (Blitz mit großem Level, weil der Tipp-Knopf „−3 s“ zeigt).
 
 ## Sonstiges

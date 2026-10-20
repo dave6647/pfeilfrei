@@ -78,8 +78,6 @@ button:focus-visible{outline:2px solid var(--l2);outline-offset:2px}
   color:var(--muted);padding:6px 8px;pointer-events:none;text-wrap:balance}
 
 .foot{display:flex;align-items:center;gap:10px;padding-block:8px 14px}
-.left{flex:1;min-width:0;font-family:var(--mono);font-weight:700;font-size:13px;line-height:1.25;color:var(--muted);font-variant-numeric:tabular-nums;
-  display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
 .btn{font-weight:700;font-size:15px;letter-spacing:.01em;height:46px;padding:2px 16px 0;border-radius:12px;border:1.5px solid var(--grid);
   background:var(--surface);color:var(--ink);display:inline-flex;align-items:center;justify-content:center;gap:8px;transition:transform .08s}
 .btn:active{transform:translateY(1px)}
@@ -95,18 +93,19 @@ button:focus-visible{outline:2px solid var(--l2);outline-offset:2px}
 .btn.icon[aria-pressed="true"] svg{stroke:var(--paper)}
 .btn.icon[aria-pressed="true"] .plus{display:none}
 #btnGrid svg{stroke-width:2}
-/* Fußleiste mit Symbol-Knöpfen: etwas schmalere Knöpfe. Passt „N Pfeile übrig“ dann nicht in zwei Zeilen
-   (lange Sprachen, Blitz-Tipp „−3 s“, 360 px), wird erst „Neu“ zum Symbol (compact), dann auch
-   „Tipp“ (tight: Glühbirne + Zahl; das Wort bleibt für Screenreader) – fitFooter */
+/* Fußleiste: nur Knöpfe. Symbol-Knöpfe fest 46 px, die Text-Knöpfe teilen sich den Rest gleichmäßig.
+   Passt nicht alles mit Text in die Breite (lange Sprachen, Lupe, 360 px), werden sie stufenweise zu Symbolen –
+   fitFooter: erst „Neu“ (compact), dann „Modus neu“ (mini), zuletzt „Tipp“ (tight: Glühbirne + Zahl).
+   Die Wörter bleiben für Screenreader erhalten (aria-label bzw. unsichtbarer Text). */
 .foot{gap:8px}
-.foot .btn:not(.icon){padding-inline:12px}
+.foot .btn{white-space:nowrap}
+.foot .btn:not(.icon){flex:1 1 0;padding-inline:12px}
 .btn .ico{display:none}
-#btnRestart.icon .ico{display:block}
-#btnRestart.icon span{display:none}
+#btnRestart.icon .ico,#btnReset.icon .ico{display:block}
+#btnRestart.icon span,#btnReset.icon span{display:none}
 #btnHint .ico{width:21px;height:21px;flex:none;stroke:var(--ink);fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;margin:-2px -2px 0}
 .foot.compact{gap:6px}
 .foot.compact #btnHint{padding-inline:10px}
-.foot.compact .left{font-size:12px}
 .foot.compact .btn.icon{width:42px}
 .foot.tight #btnHint{gap:6px}
 .foot.tight #btnHint .ico{display:block}
@@ -261,7 +260,11 @@ button:focus-visible{outline:2px solid var(--l2);outline-offset:2px}
     <p id="zoomTip" class="toast" role="status" hidden></p>
   </main>
   <footer id="foot" class="foot">
-    <span id="left" class="left">0 arrows left</span>
+    <!-- „Modus neu“ (nur Klassisch und Hardcore): ganzen Modus auf Level 1 zurücksetzen, mit Nachfrage.
+         Bewusst am anderen Ende als „Neu“, damit man die beiden nicht verwechselt -->
+    <button id="btnReset" class="btn" data-i18n-aria="resetModeAria" aria-label="Reset mode: back to level 1">
+      <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 5.5v13"/><path d="M18 6.2 10.2 12 18 17.8z"/></svg><span data-i18n="resetMode">Reset mode</span>
+    </button>
     <button id="btnZoom" class="btn icon" aria-pressed="false" aria-label="Zoom in" hidden>
       <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.6"/><path d="M15.4 15.4l5.1 5.1M7.7 10.5h5.6"/><path class="plus" d="M10.5 7.7v5.6"/></svg>
     </button>
@@ -770,7 +773,6 @@ const I18N = {
     languageTitle: 'Choose language', close: 'Done',
     level: 'Level', menuAria: 'Menu', boardAria: 'Game board',
     hint: 'Hint', restart: 'Restart', restartAria: 'Restart level',
-    left: n => n === 1 ? '1 arrow left' : `${n} arrows left`,
     hearts: n => n === 1 ? '1 heart' : `${n} hearts`,
     coach1: 'Tap an arrow. If its path is clear, it slides off the board.',
     coach2: 'If another arrow is in the way, they crash. That costs a heart.',
@@ -818,6 +820,10 @@ const I18N = {
     zoomIn: 'Zoom in', zoomOut: 'Zoom out',
     zoomTip: 'Big board: zoom in with two fingers or the magnifier.',
     grid: 'Grid', // Raster-Knopf (Screenreader)
+    resetMode: 'Reset mode', resetModeAria: 'Reset mode: back to level 1',
+    resetTitle: m => `Start ${m} over?`,
+    resetTextNormal: n => `Back to level 1 with 3 hints. Your progress up to level ${n} and your flawless count are reset.`,
+    resetTextHc: 'Back to level 1 with 5 hearts and 3 hints. Your best stays.',
     debug: 'Debug', // nur Test-APK
   },
   de: {
@@ -828,7 +834,6 @@ const I18N = {
     languageTitle: 'Sprache wählen', close: 'Fertig',
     level: 'Level', menuAria: 'Menü', boardAria: 'Spielfeld',
     hint: 'Tipp', restart: 'Neu', restartAria: 'Level neu starten',
-    left: n => n === 1 ? '1 Pfeil übrig' : `${n} Pfeile übrig`,
     hearts: n => n === 1 ? '1 Herz' : `${n} Herzen`,
     coach1: 'Tippe einen Pfeil an. Ist sein Weg frei, fährt er hinaus.',
     coach2: 'Steht ein Pfeil im Weg, gibt es einen Zusammenstoß. Das kostet ein Herz.',
@@ -876,6 +881,10 @@ const I18N = {
     zoomIn: 'Hineinzoomen', zoomOut: 'Herauszoomen',
     zoomTip: 'Großes Feld: mit zwei Fingern oder der Lupe hineinzoomen.',
     grid: 'Raster', // Raster-Knopf (Screenreader)
+    resetMode: 'Modus neu', resetModeAria: 'Modus neu: zurück auf Level 1',
+    resetTitle: m => `${m} neu beginnen?`,
+    resetTextNormal: n => `Zurück auf Level 1 mit 3 Tipps. Dein Fortschritt bis Level ${n} und der Fehlerfrei-Zähler werden zurückgesetzt.`,
+    resetTextHc: 'Zurück auf Level 1 mit 5 Herzen und 3 Tipps. Dein Rekord bleibt.',
     debug: 'Debug', // nur Test-APK
   },
   es: {
@@ -886,7 +895,6 @@ const I18N = {
     languageTitle: 'Elige el idioma', close: 'Listo',
     level: 'Nivel', menuAria: 'Menú', boardAria: 'Tablero',
     hint: 'Pista', restart: 'Reiniciar', restartAria: 'Reiniciar nivel',
-    left: n => n === 1 ? 'Queda 1 flecha' : `Quedan ${n} flechas`,
     hearts: n => n === 1 ? '1 corazón' : `${n} corazones`,
     coach1: 'Toca una flecha. Si su camino está libre, sale del tablero.',
     coach2: 'Si otra flecha se interpone, chocan. Eso cuesta un corazón.',
@@ -934,6 +942,10 @@ const I18N = {
     zoomIn: 'Acercar', zoomOut: 'Alejar',
     zoomTip: 'Tablero grande: acerca con dos dedos o con la lupa.',
     grid: 'Cuadrícula', // Raster-Knopf (Screenreader)
+    resetMode: 'Reiniciar modo', resetModeAria: 'Reiniciar modo: volver al nivel 1',
+    resetTitle: m => `¿Reiniciar el modo ${m}?`,
+    resetTextNormal: n => `Vuelves al nivel 1 con 3 pistas. Se borran tu progreso hasta el nivel ${n} y tu contador de niveles perfectos.`,
+    resetTextHc: 'Vuelves al nivel 1 con 5 corazones y 3 pistas. Tu récord se mantiene.',
     debug: 'Debug', // nur Test-APK
   },
   pt: {
@@ -944,7 +956,6 @@ const I18N = {
     languageTitle: 'Escolha o idioma', close: 'Pronto',
     level: 'Nível', menuAria: 'Menu', boardAria: 'Tabuleiro',
     hint: 'Dica', restart: 'Reiniciar', restartAria: 'Reiniciar nível',
-    left: n => n === 1 ? 'Resta 1 seta' : `Restam ${n} setas`,
     hearts: n => n === 1 ? '1 coração' : `${n} corações`,
     coach1: 'Toque em uma seta. Se o caminho estiver livre, ela sai do tabuleiro.',
     coach2: 'Se outra seta estiver no caminho, elas batem. Isso custa um coração.',
@@ -992,6 +1003,10 @@ const I18N = {
     zoomIn: 'Aproximar', zoomOut: 'Afastar',
     zoomTip: 'Tabuleiro grande: aproxime com dois dedos ou com a lupa.',
     grid: 'Grade', // Raster-Knopf (Screenreader)
+    resetMode: 'Reiniciar modo', resetModeAria: 'Reiniciar modo: voltar ao nível 1',
+    resetTitle: m => `Reiniciar o modo ${m}?`,
+    resetTextNormal: n => `Você volta ao nível 1 com 3 dicas. Seu progresso até o nível ${n} e a contagem de níveis perfeitos são zerados.`,
+    resetTextHc: 'Você volta ao nível 1 com 5 corações e 3 dicas. Seu recorde continua.',
     debug: 'Debug', // nur Test-APK
   },
   fr: {
@@ -1002,7 +1017,6 @@ const I18N = {
     languageTitle: 'Choisir la langue', close: 'OK',
     level: 'Niveau', menuAria: 'Menu', boardAria: 'Plateau de jeu',
     hint: 'Indice', restart: 'Rejouer', restartAria: 'Recommencer le niveau',
-    left: n => n === 1 ? '1 flèche restante' : `${n} flèches restantes`,
     hearts: n => n === 1 ? '1 cœur' : `${n} cœurs`,
     coach1: 'Touche une flèche. Si son chemin est libre, elle sort du plateau.',
     coach2: 'Si une autre flèche bloque le passage, elles se percutent. Tu perds un cœur.',
@@ -1050,6 +1064,10 @@ const I18N = {
     zoomIn: 'Zoomer', zoomOut: 'Dézoomer',
     zoomTip: 'Grand plateau : zoomez avec deux doigts ou la loupe.',
     grid: 'Grille', // Raster-Knopf (Screenreader)
+    resetMode: 'Remise à zéro', resetModeAria: 'Remise à zéro : retour au niveau 1',
+    resetTitle: m => `Recommencer le mode ${m}\u00A0?`,
+    resetTextNormal: n => `Retour au niveau 1 avec 3 indices. Ta progression jusqu’au niveau ${n} et ton compteur de niveaux parfaits sont remis à zéro.`,
+    resetTextHc: 'Retour au niveau 1 avec 5 cœurs et 3 indices. Ton record est conservé.',
     debug: 'Debug', // nur Test-APK
   },
   id: {
@@ -1060,7 +1078,6 @@ const I18N = {
     languageTitle: 'Pilih bahasa', close: 'Selesai',
     level: 'Level', menuAria: 'Menu', boardAria: 'Papan permainan',
     hint: 'Petunjuk', restart: 'Ulangi', restartAria: 'Ulangi level',
-    left: n => `${n} panah tersisa`,
     hearts: n => `${n} nyawa`,
     coach1: 'Ketuk sebuah panah. Jika jalurnya kosong, panah akan keluar dari papan.',
     coach2: 'Jika ada panah lain yang menghalangi, keduanya bertabrakan. Kamu kehilangan satu nyawa.',
@@ -1108,6 +1125,10 @@ const I18N = {
     zoomIn: 'Perbesar', zoomOut: 'Perkecil',
     zoomTip: 'Papan besar: perbesar dengan dua jari atau kaca pembesar.',
     grid: 'Kisi-kisi', // Raster-Knopf (Screenreader)
+    resetMode: 'Atur ulang', resetModeAria: 'Atur ulang mode: kembali ke level 1',
+    resetTitle: m => `Mulai ulang mode ${m}?`,
+    resetTextNormal: n => `Kembali ke level 1 dengan 3 petunjuk. Progresmu sampai level ${n} dan jumlah level sempurna diatur ulang.`,
+    resetTextHc: 'Kembali ke level 1 dengan 5 nyawa dan 3 petunjuk. Rekormu tetap tersimpan.',
     debug: 'Debug', // nur Test-APK
   },
   tr: {
@@ -1118,7 +1139,6 @@ const I18N = {
     languageTitle: 'Dil seç', close: 'Tamam',
     level: 'Seviye', menuAria: 'Menü', boardAria: 'Oyun tahtası',
     hint: 'İpucu', restart: 'Yeniden', restartAria: 'Seviyeyi yeniden başlat',
-    left: n => `${n} ok kaldı`,
     hearts: n => `${n} can`,
     coach1: 'Bir oka dokun. Yolu açıksa tahtadan çıkar.',
     coach2: 'Yolda başka bir ok varsa çarpışırlar ve bir can kaybedersin.',
@@ -1166,6 +1186,10 @@ const I18N = {
     zoomIn: 'Yakınlaştır', zoomOut: 'Uzaklaştır',
     zoomTip: 'Büyük alan: iki parmakla ya da büyüteçle yakınlaştır.',
     grid: 'Izgara', // Raster-Knopf (Screenreader)
+    resetMode: 'Modu sıfırla', resetModeAria: 'Modu sıfırla: 1. seviyeye dön',
+    resetTitle: m => `${m} baştan başlasın mı?`,
+    resetTextNormal: n => `3 ipucuyla 1. seviyeye dönersin. ${n}. seviyeye kadarki ilerlemen ve kusursuz sayacın sıfırlanır.`,
+    resetTextHc: '5 can ve 3 ipucuyla 1. seviyeye dönersin. Rekorun kalır.',
     debug: 'Debug', // nur Test-APK
   },
 };
@@ -1555,7 +1579,7 @@ const Confetti = (() => {
 const $ = id => document.getElementById(id);
 const els = {
   app: $('app'), home: $('home'), dlg: $('dlg'), board: $('board'), preview: $('preview'),
-  lvl: $('lvlNum'), lvlLabel: $('lvlLabel'), hearts: $('hearts'), left: $('left'), hint: $('btnHint'), hintCount: $('hintCount'),
+  lvl: $('lvlNum'), lvlLabel: $('lvlLabel'), hearts: $('hearts'), hint: $('btnHint'), reset: $('btnReset'), hintCount: $('hintCount'),
   coach: $('coach'), sound: $('tglSound'), vib: $('tglVib'), zoom: $('btnZoom'), grid: $('btnGrid'), zoomTip: $('zoomTip'), foot: $('foot'), restart: $('btnRestart'),
   classic: $('btnClassic'), classicHearts: $('classicHearts'), classicStats: $('classicStats'),
   hc: $('btnHc'), hcHearts: $('hcHearts'), hcStats: $('hcStats'), buy: $('btnBuy'), buyPrice: $('buyPrice'),
@@ -1642,7 +1666,8 @@ function renderHud(){
     els.hearts.innerHTML = heartsHtml(G.hearts, isHc() ? HC_HEARTS : 3);
     els.hearts.setAttribute('aria-label', t('hearts', G.hearts));
   }
-  els.left.textContent = t('left', G.board ? G.board.left : 0);
+  els.reset.hidden = blitz; // Blitz: „Neu“ startet schon einen neuen Durchgang
+  els.reset.disabled = !blitz && atModeStart();
   renderZoomBtn();
   els.grid.setAttribute('aria-pressed', String(!!progress.grid));
   if (blitz) {
@@ -1924,6 +1949,35 @@ function restartBlitz(){
     secondary: [t('blitzResume'), () => { els.dlg.hidden = true; tLast = null; kick(); }],
   });
 }
+// „Modus neu“ (Klassisch/Hardcore): den ganzen Modus auf Anfang setzen, vorher nachfragen.
+// Klassisch: Level 1, 3 Tipps, Fehlerfrei-Zähler 0 – Tipps und „fehlerfrei“ gibt es nur für neu geschaffte
+// Level, mit altem Vorrat ließen sie sich sonst durch erneutes Spielen sammeln.
+// Hardcore: wie nach Game over (Level 1, 5 Herzen, 3 Tipps), der Rekord bleibt. Blitz hat keinen solchen Knopf.
+// Steht der Modus schon am Anfang, ist der Knopf gesperrt.
+function atModeStart(){
+  if (isHc()) { const hc = progress.hc; return hc.level === 1 && hc.hearts === HC_HEARTS && hc.hints === HC_RESET.hints; }
+  return progress.level === 1 && progress.flawless === 0 && progress.hints === 3;
+}
+function askResetMode(){
+  if (!G.board || G.over || isBlitz() || atModeStart()) return;
+  const hc = isHc();
+  buzz(10);
+  // „Weiterspielen“ ist der hervorgehobene Knopf: wer sich vertippt, verliert nichts
+  showDialog({
+    eyebrow: eyebrow(),
+    title: t('resetTitle', hc ? t('hardcore') : t('classic')),
+    text: hc ? t('resetTextHc') : t('resetTextNormal', progress.level),
+    primary: [t('blitzResume'), closeDialog],
+    secondary: [t('hcRestart'), resetMode],
+  });
+}
+function resetMode(){
+  if (isHc()) { Object.assign(progress.hc, HC_RESET); progress.run.hc = null; }
+  else { Object.assign(progress, { level: 1, flawless: 0, hints: 3 }); progress.run.normal = null; }
+  saveProgress();
+  buzz(25);
+  startLevel(1);
+}
 // Nächstes Level aus dem Gewinnfenster; in der Gratis-Version ist nach FREE_LEVELS Schluss
 function nextLevel(){
   if (!canPlay(G.mode, G.n + 1)) { cancelPending(); Confetti.stop(); showUpgrade('done'); return; }
@@ -2132,14 +2186,17 @@ function renderZoomBtn(){
   els.zoom.setAttribute('aria-label', Z.on ? t('zoomOut') : t('zoomIn'));
   if (show) fitFooter();
 }
-// Passt „N Pfeile übrig“ nicht in zwei Zeilen, wird erst „Neu“ zum Symbol (compact), dann auch „Tipp“
-// (tight: Glühbirne + Zahl). Jede Stufe erst anwenden, dann messen.
+// Passen nicht alle Knöpfe mit Text in die Fußleiste, werden sie stufenweise zu Symbolen:
+// erst „Neu“ (compact, ↻), dann „Modus neu“ (mini, ⏮), zuletzt „Tipp“ (tight: Glühbirne + Zahl).
+// Der oft gebrauchte Tipp-Knopf behält sein Wort am längsten. Jede Stufe erst anwenden, dann messen.
 function fitFooter(){
-  const f = els.foot, l = els.left;
-  const fits = () => l.scrollHeight <= l.clientHeight + 1 && l.scrollWidth <= l.clientWidth + 1;
-  f.classList.remove('compact', 'tight'); els.restart.classList.remove('icon');
+  const f = els.foot;
+  const fits = () => f.scrollWidth <= f.clientWidth + 1;
+  f.classList.remove('compact', 'tight', 'mini'); els.restart.classList.remove('icon'); els.reset.classList.remove('icon');
   if (fits()) return;
   f.classList.add('compact'); els.restart.classList.add('icon');
+  if (fits()) return;
+  f.classList.add('mini'); els.reset.classList.add('icon');
   if (fits()) return;
   f.classList.add('tight');
 }
@@ -2279,6 +2336,7 @@ els.grid.addEventListener('click', () => {
   kick();
 });
 $('btnHint').addEventListener('click', useHint);
+els.reset.addEventListener('click', askResetMode);
 $('btnRestart').addEventListener('click', () => {
   if (!G.board || G.over) return;
   if (isBlitz()) restartBlitz(); else startLevel(G.n);
