@@ -12,12 +12,26 @@ Drei Zusammenstöße kosten das Level.
   (1 s pro Pfeil + 3 s), jeder Zusammenstoß kostet 5 s, ein Tipp 3 s. Ist die Zeit um, ist der Durchgang vorbei.
   Die Schwierigkeit steigt wie im klassischen Modus. Werte stehen oben in `web/game.html` (`BLITZ_START` usw.).
 
+## Gratis- und Vollversion
+
+Eine App, die Vollversion wird in der App gekauft (Google Play, einmalig, vorläufig 1,99 €).
+
+- **Gratis**: Klassisch bis Level 250. Hardcore und Blitz sind gesperrt, ganz unten im Menü steht „Vollversion kaufen“.
+- **Vollversion**: alles frei, unbegrenzt viele Level. Der Spielstand bleibt beim Kauf erhalten.
+
+Für den Kauf muss die App im Play Store sein und dort ein In-App-Produkt mit der ID `vollversion` angelegt werden
+(Play Console → Monetarisieren → In-App-Produkte). Bis dahin meldet der Knopf „Kaufen geht gerade nicht“.
+
 Sprachen: Englisch (Standard), Deutsch, Spanisch, Portugiesisch (Brasilien), Französisch, Indonesisch und Türkisch. Umschaltbar im Menü unter „Language“.
 
 ## App aufs Handy holen
 
 1. Auf GitHub rechts auf **Releases** tippen (oder `/releases/latest` an die Repo-Adresse hängen).
-2. Die Datei `arrow-escape-….apk` herunterladen und öffnen.
+2. Eine der beiden Dateien herunterladen und öffnen:
+   - `arrow-escape-…-gratis.apk`: so wie später im Play Store (Gratis-Version mit Kaufen-Knopf).
+   - `arrow-escape-…-voll-test.apk`: alles freigeschaltet, nur zum Testen. Nicht in den Play Store hochladen.
+
+   Beide haben dieselbe App-ID und ersetzen sich gegenseitig, der Spielstand bleibt.
 3. Beim ersten Mal fragt Android, ob der Browser Apps installieren darf. Das einmal erlauben.
 
 Jede Änderung im Branch `main` baut automatisch eine neue APK (Tab **Actions**).

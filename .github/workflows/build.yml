@@ -35,19 +35,21 @@ jobs:
       - name: Level prüfen
         run: node tools/test_levels.js 300
 
-      - name: APK bauen
+      - name: APKs bauen (gratis + voll-test)
         run: gradle assembleRelease --no-daemon --stacktrace
         env:
           VERSION_CODE: ${{ github.run_number }}
 
-      - name: APK benennen
-        run: cp app/build/outputs/apk/release/app-release.apk arrow-escape-${{ github.run_number }}.apk
+      - name: APKs benennen
+        run: |
+          cp app/build/outputs/apk/store/release/app-store-release.apk arrow-escape-${{ github.run_number }}-gratis.apk
+          cp app/build/outputs/apk/vollTest/release/app-vollTest-release.apk arrow-escape-${{ github.run_number }}-voll-test.apk
 
-      - name: APK als Download ablegen
+      - name: APKs als Download ablegen
         uses: actions/upload-artifact@v4
         with:
           name: arrow-escape-apk-${{ github.run_number }}
-          path: arrow-escape-${{ github.run_number }}.apk
+          path: arrow-escape-${{ github.run_number }}-*.apk
 
       - name: Release veröffentlichen
         uses: softprops/action-gh-release@v2
@@ -55,7 +57,10 @@ jobs:
           tag_name: build-${{ github.run_number }}
           name: Arrow Escape Build ${{ github.run_number }}
           body: |
-            Zum Installieren die Datei arrow-escape-${{ github.run_number }}.apk unten auf dem Handy antippen und herunterladen.
+            Zwei Dateien, beide ersetzen sich gegenseitig (der Spielstand bleibt):
+            - arrow-escape-${{ github.run_number }}-gratis.apk: so wie später im Play Store. Klassisch bis Level 250, Hardcore und Blitz gesperrt. Kaufen klappt erst, wenn die App im Play Store ist.
+            - arrow-escape-${{ github.run_number }}-voll-test.apk: alles freigeschaltet, nur zum Testen.
+            Zum Installieren die Datei auf dem Handy antippen und herunterladen.
             Änderung: ${{ github.event.head_commit.message }}
-          files: arrow-escape-${{ github.run_number }}.apk
+          files: arrow-escape-${{ github.run_number }}-*.apk
           make_latest: true

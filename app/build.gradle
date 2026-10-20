@@ -18,6 +18,26 @@ android {
         versionName "0.1.${buildNumber}"
     }
 
+    buildFeatures {
+        buildConfig true
+    }
+
+    // Zwei APKs mit derselben App-ID (ersetzen sich gegenseitig, der Spielstand bleibt):
+    // - store: so wie im Play Store. Gratis-Version, die Vollversion wird in der App gekauft.
+    // - vollTest: zum Testen ohne Play Store, alles freigeschaltet. Nicht in den Play Store hochladen!
+    flavorDimensions 'edition'
+    productFlavors {
+        store {
+            dimension 'edition'
+            buildConfigField 'boolean', 'TEST_FULL', 'false'
+        }
+        vollTest {
+            dimension 'edition'
+            buildConfigField 'boolean', 'TEST_FULL', 'true'
+            versionNameSuffix '-voll-test'
+        }
+    }
+
     // Test-Schlüssel: gleich bei jedem Build, damit Updates ohne
     // Deinstallieren funktionieren. Für den Play Store später ersetzen.
     signingConfigs {
@@ -48,4 +68,9 @@ android {
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
     }
+}
+
+dependencies {
+    // Google Play Billing für den Kauf der Vollversion (ab 31.08.2026 verlangt Play mindestens Version 8)
+    implementation 'com.android.billingclient:billing:9.1.0'
 }

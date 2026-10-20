@@ -16,6 +16,15 @@ GitHub Actions baut bei jedem Push auf `main` eine APK und veröffentlicht sie a
   - `node tools/test_levels.js 300`
   - `python3 tools/build_web.py` (erzeugt `app/src/main/assets/index.html`)
 
+## Gratis- und Vollversion
+
+- Eine App; die Vollversion ist ein In-App-Kauf über Google Play (Produkt-ID `vollversion`, Code in `MainActivity.java`).
+- Gratis: Klassisch bis `FREE_LEVELS` (250), Hardcore und Blitz gesperrt. Ob etwas spielbar ist, immer über `canPlay(mode, n)` bzw. `Edition.full` prüfen.
+- Bei neuen Modi oder Funktionen festlegen, ob sie gratis sind oder zur Vollversion gehören.
+- Zwei APKs pro Build: Flavor `store` (für den Play Store) und `vollTest` (alles frei, nur zum Testen, nie hochladen).
+- Im Browser ist alles frei; `?free` an die Adresse hängen, um die Gratis-Version zu testen.
+- SharedPreferences-Schlüssel `full` und `price` nicht umbenennen.
+
 ## Sonstiges
 
 - Der Nutzer schreibt Deutsch; Commit-Nachrichten auf Deutsch.
