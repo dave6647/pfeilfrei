@@ -94,6 +94,8 @@ public class MainActivity extends Activity {
     @Override
     protected void onPause() {
         super.onPause();
+        // Blitzmodus: Uhr anhalten und Restzeit speichern, bevor die WebView pausiert
+        web.evaluateJavascript("window.pfPause && window.pfPause()", null);
         web.onPause();
     }
 

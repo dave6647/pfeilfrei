@@ -4,6 +4,14 @@ Ein Pfeil-Puzzle für Android im Metroplan-Look. Jeder Pfeil fährt nur in seine
 Ziel ist es, alle Pfeile in der richtigen Reihenfolge vom Feld zu schicken, ohne dass sie zusammenstoßen.
 Drei Zusammenstöße kosten das Level.
 
+## Spielmodi
+
+- **Klassisch**: 3 Herzen pro Level.
+- **Hardcore**: 5 Herzen für alle Level zusammen; nach dem fünften Zusammenstoß zurück auf Level 1.
+- **Blitz**: zufällige Level gegen die Uhr. Start mit 30 Sekunden, jedes geschaffte Level bringt Zeit dazu
+  (1 s pro Pfeil + 3 s), jeder Zusammenstoß kostet 5 s, ein Tipp 3 s. Ist die Zeit um, ist der Durchgang vorbei.
+  Die Schwierigkeit steigt wie im klassischen Modus. Werte stehen oben in `web/game.html` (`BLITZ_START` usw.).
+
 Sprachen: Englisch (Standard), Deutsch, Spanisch, Portugiesisch (Brasilien), Französisch, Indonesisch und Türkisch. Umschaltbar im Menü unter „Language“.
 
 ## App aufs Handy holen

@@ -32,4 +32,22 @@ for (let n = 1; n <= N; n++) {
   rows.push({ n, size: `${lv.W}x${lv.H}`, arrows: lv.arrows.length, fill: (cells / (lv.W * lv.H)).toFixed(2), free: (free0 / lv.arrows.length).toFixed(2), depth: steps, avgLen: avgLen.toFixed(1), ms });
 }
 for (const r of rows.filter(r => r.n <= 12 || r.n % 10 === 0)) console.log(JSON.stringify(r));
-console.log(`\nLevel geprüft: ${N}, Fehler: ${fails}, langsamste Generierung: ${worstMs} ms`);
+// Blitzmodus: Zufalls-Level (zufälliger Startwert) müssen genauso lösbar sein
+let blitzFails = 0;
+for (let i = 0; i < N; i++) {
+  const n = 1 + (i % 45), seed = Math.floor(Math.random() * 0x7fffffff);
+  const t0 = Date.now();
+  const lv = api.generateLevel(n, seed);
+  worstMs = Math.max(worstMs, Date.now() - t0);
+  const alive = lv.arrows.map(() => true);
+  let left = lv.arrows.length;
+  while (left > 0) {
+    const f = api.freeArrows(lv, alive);
+    if (!f.length) break;
+    for (const id of f) { alive[id] = false; left--; }
+  }
+  if (left > 0 || !lv.arrows.length) { blitzFails++; console.log('Blitz UNLÖSBAR', n, seed); }
+}
+fails += blitzFails;
+console.log(`\nLevel geprüft: ${N} + ${N} Blitz-Zufallslevel, Fehler: ${fails}, langsamste Generierung: ${worstMs} ms`);
+if (fails) process.exit(1);

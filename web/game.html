@@ -24,6 +24,7 @@
   --l1:#FF5B4F; --l2:#4597FF; --l3:#2EC27F; --l4:#FFA332; --l5:#A77BF2; --l6:#1FC6D3; --l7:#F04FA7; --l8:#D9A441;
   color-scheme:dark;
 }
+[hidden]{display:none!important}
 html{height:100%;box-sizing:border-box}
 *,*::before,*::after{box-sizing:inherit}
 body{height:100%;margin:0;background:var(--paper);color:var(--ink);font-family:var(--display);font-size:16px;
@@ -34,7 +35,7 @@ button:focus-visible{outline:2px solid var(--l2);outline-offset:2px}
 /* ---------- game screen ---------- */
 #app{display:flex;flex-direction:column;height:100%;
   padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
-.top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-block:10px 4px}
+.top{position:relative;z-index:2;display:flex;align-items:center;justify-content:space-between;gap:12px;padding-block:10px 4px}
 .icon-btn{width:44px;height:44px;border:0;border-radius:12px;background:transparent;display:grid;place-items:center;margin-left:-8px}
 .icon-btn svg{width:24px;height:24px;stroke:var(--ink);fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
 .badge{display:flex;align-items:center;gap:8px}
@@ -51,6 +52,23 @@ button:focus-visible{outline:2px solid var(--l2);outline-offset:2px}
 #app.hc .badge-num{background:var(--signal)}
 #app.hc .hearts{gap:2px}
 #app.hc .hearts svg{width:20px;height:20px}
+/* Blitz: gelbe Plakette, Uhr statt Herzen; Zeitgutschrift/-abzug schwebt unter der Uhr */
+#app.blitz .badge-num{background:var(--hint);color:var(--on-hint)}
+.timer{position:relative;display:flex;align-items:center;gap:5px;height:34px;padding-top:2px;
+  font-family:var(--mono);font-weight:700;font-size:21px;color:var(--ink);font-variant-numeric:tabular-nums}
+.timer svg,.mode-time svg{flex:none;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;margin-top:-2px}
+.timer svg{width:20px;height:20px}
+.t-txt{display:inline-block;min-width:4ch;text-align:right}
+.timer.low{color:var(--signal)}
+.timer.low .t-txt{animation:pulse 1s ease-in-out infinite}
+.timer.shake{animation:shake .42s}
+@keyframes pulse{50%{transform:scale(1.12)}}
+.tfloat{position:absolute;right:0;top:100%;margin-top:4px;font-size:19px;white-space:nowrap;pointer-events:none;animation:tup 1.1s ease-out forwards}
+.tfloat.plus{color:var(--l3)}
+.tfloat.minus{color:var(--signal);animation-name:tdown}
+@keyframes tup{0%{opacity:0;transform:translateY(18px) scale(.9)}18%{opacity:1;transform:translateY(8px) scale(1.08)}100%{opacity:0;transform:translateY(-4px)}}
+@keyframes tdown{0%{opacity:0;transform:translateY(-6px)}15%{opacity:1}100%{opacity:0;transform:translateY(20px)}}
+@keyframes tfade{0%,70%{opacity:1}100%{opacity:0}}
 @keyframes shake{20%{transform:translateX(-5px)}40%{transform:translateX(5px)}60%{transform:translateX(-3px)}80%{transform:translateX(2px)}}
 
 #boardWrap{flex:1;position:relative;min-height:0}
@@ -93,6 +111,9 @@ button:focus-visible{outline:2px solid var(--l2);outline-offset:2px}
 .mode::before{content:"";position:absolute;left:0;top:0;bottom:0;width:7px;background:var(--line)}
 .mode:active{transform:translateY(1px)}
 .mode.hardcore{--line:var(--signal)}
+.mode.blitz{--line:var(--hint)}
+.mode-time{display:flex;align-items:center;gap:4px;padding-top:2px;font-family:var(--mono);font-weight:700;font-size:15px;color:var(--ink);font-variant-numeric:tabular-nums}
+.mode-time svg{width:16px;height:16px}
 .mode-head{display:flex;align-items:center;gap:10px}
 .mode-name{flex:1;min-width:0;font-weight:900;font-size:22px;letter-spacing:-.015em;line-height:1.05;padding-top:3px}
 .mode-hearts{gap:2px}
@@ -148,7 +169,8 @@ button:focus-visible{outline:2px solid var(--l2);outline-offset:2px}
 /* ---------- Konfetti-Ebene über allem, fängt keine Berührungen ab ---------- */
 #fx{position:fixed;inset:0;width:100%;height:100%;z-index:11;pointer-events:none}
 
-@media (max-height: 700px){
+/* Niedrige Bildschirme: Menü kompakter, damit drei Modus-Karten ohne Scrollen passen */
+@media (max-height: 820px){
   .home-in{gap:12px}
   .wordmark{font-size:clamp(46px,14vw,72px)}
   .lede{font-size:15.5px}
@@ -156,8 +178,15 @@ button:focus-visible{outline:2px solid var(--l2);outline-offset:2px}
   .modes{gap:8px}
   .mode{padding-block:10px 9px}
 }
+/* Sehr niedrig (z. B. 360×640): die Vorschau darf ganz schrumpfen; unter 44 px wird sie nicht gezeichnet */
+@media (max-height: 700px){
+  .preview-wrap{min-height:0}
+}
+/* Blitz: Tipp-Knopf zeigt „−3 s“ statt einer Zahl, daher etwas schmalere Knöpfe */
+#app.blitz .foot .btn{padding-inline:12px}
 @media (prefers-reduced-motion: reduce){
-  .sheet,.sheet.party h2,.hearts.shake{animation:none}
+  .sheet,.sheet.party h2,.hearts.shake,.timer.shake,.timer.low .t-txt{animation:none}
+  .tfloat,.tfloat.minus{animation:tfade 1.1s forwards}
 }
 </style>
 
@@ -168,6 +197,9 @@ button:focus-visible{outline:2px solid var(--l2);outline-offset:2px}
     </button>
     <div class="badge"><span id="lvlLabel" class="badge-label">Level</span><span id="lvlNum" class="badge-num">1</span></div>
     <div id="hearts" class="hearts" role="img" aria-label="3 hearts"></div>
+    <div id="timer" class="timer" role="timer" hidden>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13.5" r="7.5"/><path d="M12 13.5V10M10 3.5h4M12 3.5V6M17.6 7.4l1.5-1.5"/></svg><span id="timerTxt" class="t-txt">0:30</span>
+    </div>
   </header>
   <main id="boardWrap">
     <canvas id="board" data-i18n-aria="boardAria" aria-label="Game board"></canvas>
@@ -197,6 +229,11 @@ button:focus-visible{outline:2px solid var(--l2);outline-offset:2px}
         <span class="mode-head"><span class="mode-name" data-i18n="hardcore">Hardcore</span><span id="hcHearts" class="hearts mode-hearts" role="img"></span><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></span>
         <span class="mode-pitch" data-i18n="hcPitch">5 hearts for all levels</span>
         <span id="hcStats" class="mode-stats"></span>
+      </button>
+      <button id="btnBlitz" class="mode blitz">
+        <span class="mode-head"><span class="mode-name" data-i18n="blitz">Blitz</span><span class="mode-time"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13.5" r="7.5"/><path d="M12 13.5V10M10 3.5h4M12 3.5V6M17.6 7.4l1.5-1.5"/></svg><span id="blitzTime">0:30</span></span><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></span>
+        <span class="mode-pitch" data-i18n="blitzPitch">Random levels against the clock</span>
+        <span id="blitzStats" class="mode-stats" hidden></span>
       </button>
     </nav>
     <button id="btnSettings" class="toggle set-btn" aria-haspopup="dialog">
@@ -384,11 +421,14 @@ function blockerOf(level, occ, a){
   return { id: -1, steps: j };
 }
 
-function generateLevel(n){
+// seed: ohne Angabe aus der Levelnummer (Klassisch/Hardcore, immer gleich),
+// im Blitzmodus zufällig (gleiche Schwierigkeit wie Level n, aber anderes Feld).
+function generateLevel(n, seed){
   const spec = levelSpec(n);
+  const base = seed === undefined ? n * 7919 + 17 : seed;
   let best = null;
   for (let v = 0; v < 30; v++) {
-    const lv = buildLevel(spec, n * 7919 + v * 104729 + 17);
+    const lv = buildLevel(spec, base + v * 104729);
     const alive = lv.arrows.map(() => true);
     const free = freeArrows(lv, alive).length;
     const total = lv.arrows.length;
@@ -399,7 +439,7 @@ function generateLevel(n){
     if (n >= 6 && free / total > 0.4) { best = best || lv; continue; }
     return lv;
   }
-  return best || buildLevel(spec, n * 7919 + 17);
+  return best || buildLevel(spec, base);
 }
 // ENGINE END
 
@@ -426,7 +466,14 @@ progress.hc = Object.assign({ best: 1, intro: false }, HC_RESET, progress.hc);
 if (!(progress.hc.hearts > 0)) Object.assign(progress.hc, HC_RESET);
 // Laufendes Level je Modus (welche Pfeile schon raus sind, Herzen, Zusammenstöße, bezahlter Tipp).
 // Wird bei jedem Zug gespeichert, damit Menü, Moduswechsel und Schließen der App nichts verlieren.
-progress.run = Object.assign({ normal: null, hc: null }, progress.run);
+progress.run = Object.assign({ normal: null, hc: null, blitz: null }, progress.run);
+// Blitz: zufällige Level gegen die Uhr. Rekord = höchstes erreichtes Level in einem Durchgang.
+// Der laufende Durchgang (Level, Startwert des Feldes, Restzeit) liegt in progress.run.blitz.
+// Die Zahlen stehen auch im Erklärtext blitzIntroText (alle Sprachen).
+const BLITZ_START = 30000, BLITZ_CRASH = 5000, BLITZ_HINT = 3000;
+const blitzBonus = arrows => (arrows + 3) * 1000; // pro geschafftem Level: 1 s je Pfeil + 3 s
+progress.blitz = Object.assign({ best: 1, intro: false }, progress.blitz);
+if (!(Number.isInteger(progress.blitz.best) && progress.blitz.best >= 1)) progress.blitz.best = 1;
 const saveProgress = () => Store.set('progress', progress);
 
 /* ---------- Sprachen (Standard: Englisch) ----------
@@ -475,6 +522,16 @@ const I18N = {
     hcOverText: n => `Five crashes. You made it to level ${n}. Hardcore starts over at level 1.`,
     hcNewRecord: 'New record!',
     hcRestart: 'Start over',
+    blitz: 'Blitz',
+    blitzPitch: 'Random levels against the clock',
+    blitzIntroTitle: 'Race the clock.',
+    blitzIntroText: 'Solve as many random levels as you can. You start with 30 seconds. Every solved level adds time, every crash costs 5 seconds.',
+    secs: n => `${n > 0 ? '+' : n < 0 ? '−' : ''}${Math.abs(n)}\u00A0s`,
+    blitzOverTitle: 'Time’s up!',
+    blitzOverText: n => `You made it to level ${n}.`,
+    blitzRestartTitle: 'Start a new run?',
+    blitzRestartText: 'Your current run ends here.',
+    blitzResume: 'Keep playing',
   },
   de: {
     classic: 'Klassisch', classicPitch: '3 Herzen pro Level', settings: 'Einstellungen',
@@ -508,6 +565,16 @@ const I18N = {
     hcOverText: n => `Fünf Zusammenstöße. Du hast Level ${n} erreicht. Hardcore beginnt wieder bei Level 1.`,
     hcNewRecord: 'Neuer Rekord!',
     hcRestart: 'Von vorn',
+    blitz: 'Blitz',
+    blitzPitch: 'Zufällige Level gegen die Uhr',
+    blitzIntroTitle: 'Gegen die Uhr.',
+    blitzIntroText: 'Schaffe so viele zufällige Level wie möglich. Du startest mit 30 Sekunden. Jedes geschaffte Level bringt Zeit dazu, jeder Zusammenstoß kostet 5 Sekunden.',
+    secs: n => `${n > 0 ? '+' : n < 0 ? '−' : ''}${Math.abs(n)}\u00A0s`,
+    blitzOverTitle: 'Zeit um!',
+    blitzOverText: n => `Du hast Level ${n} erreicht.`,
+    blitzRestartTitle: 'Neuer Durchgang?',
+    blitzRestartText: 'Dein laufender Durchgang endet hier.',
+    blitzResume: 'Weiterspielen',
   },
   es: {
     classic: 'Clásico', classicPitch: '3 corazones por nivel', settings: 'Ajustes',
@@ -541,6 +608,16 @@ const I18N = {
     hcOverText: n => `Cinco choques. Llegaste al nivel ${n}. El modo hardcore vuelve a empezar en el nivel 1.`,
     hcNewRecord: '¡Nuevo récord!',
     hcRestart: 'Empezar de nuevo',
+    blitz: 'Relámpago',
+    blitzPitch: 'Niveles aleatorios contra el reloj',
+    blitzIntroTitle: 'Contra el reloj.',
+    blitzIntroText: 'Resuelve todos los niveles aleatorios que puedas. Empiezas con 30 segundos. Cada nivel resuelto suma tiempo y cada choque resta 5 segundos.',
+    secs: n => `${n > 0 ? '+' : n < 0 ? '−' : ''}${Math.abs(n)}\u00A0s`,
+    blitzOverTitle: '¡Se acabó el tiempo!',
+    blitzOverText: n => `Llegaste al nivel ${n}.`,
+    blitzRestartTitle: '¿Empezar de nuevo?',
+    blitzRestartText: 'Tu partida actual termina aquí.',
+    blitzResume: 'Seguir jugando',
   },
   pt: {
     classic: 'Clássico', classicPitch: '3 corações por nível', settings: 'Configurações',
@@ -574,6 +651,16 @@ const I18N = {
     hcOverText: n => `Cinco batidas. Você chegou ao nível ${n}. O hardcore recomeça no nível 1.`,
     hcNewRecord: 'Novo recorde!',
     hcRestart: 'Recomeçar',
+    blitz: 'Relâmpago',
+    blitzPitch: 'Níveis aleatórios contra o relógio',
+    blitzIntroTitle: 'Contra o relógio.',
+    blitzIntroText: 'Resolva o máximo de níveis aleatórios que conseguir. Você começa com 30 segundos. Cada nível resolvido dá mais tempo, cada batida tira 5 segundos.',
+    secs: n => `${n > 0 ? '+' : n < 0 ? '−' : ''}${Math.abs(n)}\u00A0s`,
+    blitzOverTitle: 'Acabou o tempo!',
+    blitzOverText: n => `Você chegou ao nível ${n}.`,
+    blitzRestartTitle: 'Começar de novo?',
+    blitzRestartText: 'Sua partida atual termina aqui.',
+    blitzResume: 'Continuar jogando',
   },
   fr: {
     classic: 'Classique', classicPitch: '3 cœurs par niveau', settings: 'Réglages',
@@ -607,6 +694,16 @@ const I18N = {
     hcOverText: n => `Cinq collisions. Tu as atteint le niveau ${n}. Le mode hardcore reprend au niveau 1.`,
     hcNewRecord: 'Nouveau record !',
     hcRestart: 'Recommencer',
+    blitz: 'Éclair',
+    blitzPitch: 'Niveaux aléatoires contre la montre',
+    blitzIntroTitle: 'Contre la montre.',
+    blitzIntroText: 'Résous autant de niveaux aléatoires que possible. Tu commences avec 30 secondes. Chaque niveau résolu rajoute du temps, chaque collision coûte 5 secondes.',
+    secs: n => `${n > 0 ? '+' : n < 0 ? '−' : ''}${Math.abs(n)}\u00A0s`,
+    blitzOverTitle: 'Temps écoulé !',
+    blitzOverText: n => `Tu as atteint le niveau ${n}.`,
+    blitzRestartTitle: 'Nouvelle partie ?',
+    blitzRestartText: 'Ta partie en cours s’arrête ici.',
+    blitzResume: 'Continuer',
   },
   id: {
     classic: 'Klasik', classicPitch: '3 nyawa per level', settings: 'Pengaturan',
@@ -640,6 +737,16 @@ const I18N = {
     hcOverText: n => `Lima kali tabrakan. Kamu mencapai level ${n}. Hardcore dimulai lagi dari level 1.`,
     hcNewRecord: 'Rekor baru!',
     hcRestart: 'Mulai lagi',
+    blitz: 'Kilat',
+    blitzPitch: 'Level acak melawan waktu',
+    blitzIntroTitle: 'Berpacu dengan waktu.',
+    blitzIntroText: 'Selesaikan level acak sebanyak mungkin. Kamu mulai dengan 30 detik. Setiap level yang selesai menambah waktu, setiap tabrakan mengurangi 5 detik.',
+    secs: n => `${n > 0 ? '+' : n < 0 ? '−' : ''}${Math.abs(n)}\u00A0dtk`,
+    blitzOverTitle: 'Waktu habis!',
+    blitzOverText: n => `Kamu mencapai level ${n}.`,
+    blitzRestartTitle: 'Mulai putaran baru?',
+    blitzRestartText: 'Putaranmu saat ini berakhir di sini.',
+    blitzResume: 'Lanjut main',
   },
   tr: {
     classic: 'Klasik', classicPitch: 'Her seviyede 3 can', settings: 'Ayarlar',
@@ -673,6 +780,16 @@ const I18N = {
     hcOverText: n => `Beş çarpışma. ${n}. seviyeye kadar geldin. Hardcore 1. seviyeden yeniden başlıyor.`,
     hcNewRecord: 'Yeni rekor!',
     hcRestart: 'Baştan başla',
+    blitz: 'Yıldırım',
+    blitzPitch: 'Zamana karşı rastgele seviyeler',
+    blitzIntroTitle: 'Zamana karşı.',
+    blitzIntroText: 'Olabildiğince çok rastgele seviye çöz. 30 saniyeyle başlarsın. Çözdüğün her seviye süre kazandırır, her çarpışma 5 saniye götürür.',
+    secs: n => `${n > 0 ? '+' : n < 0 ? '−' : ''}${Math.abs(n)}\u00A0sn`,
+    blitzOverTitle: 'Süre doldu!',
+    blitzOverText: n => `${n}. seviyeye kadar geldin.`,
+    blitzRestartTitle: 'Yeni tur başlasın mı?',
+    blitzRestartText: 'Şu anki turun burada biter.',
+    blitzResume: 'Devam et',
   },
 };
 // I18N END
@@ -1038,17 +1155,27 @@ const els = {
   coach: $('coach'), sound: $('tglSound'), vib: $('tglVib'),
   classic: $('btnClassic'), classicHearts: $('classicHearts'), classicStats: $('classicStats'),
   hc: $('btnHc'), hcHearts: $('hcHearts'), hcStats: $('hcStats'),
+  blitz: $('btnBlitz'), blitzTime: $('blitzTime'), blitzStats: $('blitzStats'), timer: $('timer'), timerTxt: $('timerTxt'),
   dEyebrow: $('dlgEyebrow'), dTitle: $('dlgTitle'), dText: $('dlgText'), dReward: $('dlgReward'),
   dPrimary: $('dlgPrimary'), dSecondary: $('dlgSecondary'), dSheet: document.querySelector('#dlg .sheet'),
 };
 const HEART = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.5s-7.5-4.6-9.2-9.4C1.6 7.6 3.9 4.5 7.2 4.5c2 0 3.7 1.1 4.8 2.8 1.1-1.7 2.8-2.8 4.8-2.8 3.3 0 5.6 3.1 4.4 6.6-1.7 4.8-9.2 9.4-9.2 9.4z"/></svg>';
 const heartsHtml = (have, max) => Array.from({ length: max }, (_, i) => `<span class="${i < have ? 'full' : 'lost'}">${HEART}</span>`).join('');
 
-// mode: 'normal' (3 Herzen pro Level) oder 'hc' (Hardcore: 5 Herzen für alle Level, eigener Spielstand)
-const G = { mode: 'normal', n: 1, board: null, hearts: 3, crashes: 0, over: false, hint: -1, released: 0, layout: null, screen: 'home', skip: null };
+// mode: 'normal' (3 Herzen pro Level), 'hc' (Hardcore: 5 Herzen für alle Level, eigener Spielstand)
+// oder 'blitz' (zufällige Level gegen die Uhr; G.time = Restzeit in ms, G.seed = Startwert des Feldes)
+const G = { mode: 'normal', n: 1, board: null, hearts: 3, crashes: 0, over: false, hint: -1, released: 0, layout: null, screen: 'home', skip: null,
+            time: BLITZ_START, seed: 0 };
 const isHc = () => G.mode === 'hc';
-const hintPool = () => isHc() ? progress.hc : progress; // beide haben .hints
-const eyebrow = () => (isHc() ? t('hardcore') + ' · ' : '') + t('level') + ' ' + G.n;
+const isBlitz = () => G.mode === 'blitz';
+const hintPool = () => isHc() ? progress.hc : progress; // beide haben .hints (Blitz: Tipps kosten Zeit)
+const eyebrow = () => (isHc() ? t('hardcore') + ' · ' : isBlitz() ? t('blitz') + ' · ' : '') + t('level') + ' ' + G.n;
+const randomSeed = () => Math.floor(Math.random() * 0x7fffffff);
+// Restzeit als m:ss, aufgerundet (0:00 erst, wenn die Zeit wirklich um ist)
+const fmtTime = ms => { const s = Math.max(0, Math.ceil(ms / 1000)); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
+// Gespeicherten Blitz-Durchgang prüfen; kaputt oder abgelaufen → null (neuer Durchgang)
+const validBlitzRun = r => r && Number.isInteger(r.n) && r.n >= 1 && r.n < 1e5 && Number.isFinite(r.time) && r.time > 0
+  ? Object.assign({}, r, { time: Math.min(r.time, 36e5) }) : null;
 
 // Verzögerte Schritte nach Levelende (Konfetti → Fenster). Wird abgebrochen, wenn man vorher
 // ins Menü geht oder neu startet, damit kein Fenster über dem Menü auftaucht.
@@ -1059,14 +1186,15 @@ function cancelPending(){ pendingTimers.forEach(clearTimeout); pendingTimers = [
 function startLevel(n, restore){
   cancelPending(); Confetti.stop();
   G.n = n;
-  G.board = new Board(generateLevel(n));
+  if (isBlitz()) G.seed = restore && Number.isInteger(restore.seed) ? restore.seed : randomSeed();
+  G.board = new Board(generateLevel(n, isBlitz() ? G.seed : undefined));
   G.hearts = isHc() ? progress.hc.hearts : 3;
   G.crashes = 0; G.over = false; G.hint = -1; G.released = 0;
   const ids = restore && Array.isArray(restore.removed)
     ? [...new Set(restore.removed)].filter(id => Number.isInteger(id) && id >= 0 && id < G.board.level.arrows.length) : [];
   if (restore && ids.length < G.board.level.arrows.length) { // kaputter oder schon gelöster Stand → frisch anfangen
     for (const id of ids) { G.board.remove(id); G.board.gone[id] = true; G.released++; }
-    if (!isHc()) G.hearts = validHearts(restore.hearts);
+    if (G.mode === 'normal') G.hearts = validHearts(restore.hearts);
     G.crashes = Math.max(0, restore.crashes | 0);
     if (Number.isInteger(restore.hint) && G.board.alive[restore.hint]) G.hint = restore.hint;
   }
@@ -1082,27 +1210,121 @@ const validHearts = h => Number.isInteger(h) && h >= 1 && h <= 3 ? h : 3;
 // Stand des laufenden Levels speichern (oder löschen, wenn es vorbei ist)
 function saveRun(){
   if (!G.board) return;
+  if (isBlitz() && G.over) return; // Blitz: Levelwechsel (blitzWin) und Zeitende (blitzTimeUp) speichern selbst
   progress.run[G.mode] = G.over ? null : {
     n: G.n,
     removed: G.board.level.arrows.filter(a => !G.board.alive[a.id]).map(a => a.id),
     hearts: G.hearts, crashes: G.crashes, hint: G.hint,
+    ...(isBlitz() && { seed: G.seed, time: Math.max(0, Math.round(G.time)) }),
   };
   saveProgress();
 }
 
 function renderHud(){
+  const blitz = isBlitz();
   els.app.classList.toggle('hc', isHc());
-  els.lvlLabel.textContent = isHc() ? t('hardcore') : t('level');
+  els.app.classList.toggle('blitz', blitz);
+  els.lvlLabel.textContent = isHc() ? t('hardcore') : blitz ? t('blitz') : t('level');
   els.lvl.textContent = G.n;
-  els.hearts.innerHTML = heartsHtml(G.hearts, isHc() ? HC_HEARTS : 3);
-  els.hearts.setAttribute('aria-label', t('hearts', G.hearts));
+  els.hearts.hidden = blitz;
+  els.timer.hidden = !blitz;
+  if (!blitz) {
+    els.hearts.innerHTML = heartsHtml(G.hearts, isHc() ? HC_HEARTS : 3);
+    els.hearts.setAttribute('aria-label', t('hearts', G.hearts));
+  }
   els.left.textContent = t('left', G.board ? G.board.left : 0);
-  els.hintCount.textContent = hintPool().hints;
-  els.hint.disabled = hintPool().hints <= 0 && G.hint === -1;
+  if (blitz) {
+    els.hintCount.textContent = t('secs', -BLITZ_HINT / 1000);
+    tSecs = -1; renderTimer();
+  } else {
+    els.hintCount.textContent = hintPool().hints;
+    els.hint.disabled = hintPool().hints <= 0 && G.hint === -1;
+  }
+}
+
+/* ---------- Blitz: Uhr ----------
+   Die Zeit läuft nur, solange das Spielfeld zu sehen ist: nicht im Menü, nicht bei offenem Fenster,
+   nicht zwischen zwei Levels und nicht, wenn die App im Hintergrund ist. Gezählt wird pro Bild
+   höchstens 100 ms, damit Ruckler oder eine eingefrorene Seite keine Zeit kosten. */
+let tLast = null, tSecs = -1, tSaved = 0;
+function blitzRunning(){ return isBlitz() && G.screen === 'game' && !!G.board && !G.over && els.dlg.hidden && !document.hidden; }
+function blitzTick(now){
+  if (!blitzRunning()) { tLast = null; return false; }
+  if (tLast !== null) G.time -= Math.min(100, Math.max(0, now - tLast));
+  tLast = now;
+  if (G.time <= 0) { blitzTimeUp(); return false; }
+  if (now - tSaved > 5000) { tSaved = now; saveRun(); } // falls die App hart beendet wird
+  renderTimer(true);
+  return true;
+}
+function renderTimer(ticking){
+  const s = Math.max(0, Math.ceil(G.time / 1000));
+  if (s === tSecs) return;
+  if (ticking && s < tSecs && s <= 5 && s > 0) tone(1320, 0.05, 'square', 0.03); // Ticken in den letzten 5 Sekunden
+  tSecs = s;
+  els.timerTxt.textContent = fmtTime(G.time);
+  els.timer.classList.toggle('low', s <= 10);
+  els.hint.disabled = G.hint === -1 && (G.over || G.time <= BLITZ_HINT);
+}
+// Zeit gutschreiben (+) oder abziehen (−), mit schwebender Anzeige unter der Uhr
+function blitzAdd(ms){
+  G.time = Math.max(0, G.time + ms);
+  const el = document.createElement('span');
+  el.className = 'tfloat ' + (ms > 0 ? 'plus' : 'minus');
+  el.textContent = t('secs', Math.round(ms / 1000));
+  els.timer.appendChild(el);
+  setTimeout(() => el.remove(), 1200);
+  renderTimer();
+  if (G.time <= 0 && !G.over) blitzTimeUp();
+}
+// Level geschafft: Zeit dazu, nächstes Zufalls-Level sofort als Durchgang speichern, kurz danach starten
+function blitzWin(){
+  blitzAdd(blitzBonus(G.board.level.arrows.length));
+  const next = G.n + 1;
+  progress.run.blitz = { n: next, seed: randomSeed(), removed: [], hearts: 3, crashes: 0, hint: -1, time: Math.round(G.time) };
+  saveProgress();
+  later(() => { sndWin(); buzz(30); }, 120);
+  const go = () => { cancelPending(); if (G.screen === 'game' && isBlitz()) startLevel(next, progress.run.blitz); };
+  G.skip = go; // Tippen aufs Feld überspringt die kurze Pause
+  later(go, 750 / SPEED);
+}
+// Zeit abgelaufen: Durchgang vorbei, Rekord = höchstes erreichtes Level
+function blitzTimeUp(){
+  G.over = true; G.time = 0; G.hint = -1;
+  renderHud(); kick();
+  const b = progress.blitz, reached = G.n, prevBest = b.best, record = reached > prevBest;
+  if (record) b.best = reached;
+  progress.run.blitz = null;
+  saveProgress();
+  later(() => {
+    if (record && !reduceMotion) { Confetti.start(); sndCelebrate(); buzz(25); }
+    else if (record) { sndWin(); buzz(30); }
+    else { sndGameOver(); buzz(160); }
+    showDialog({
+      eyebrow: eyebrow(),
+      title: t('blitzOverTitle'),
+      text: t('blitzOverText', reached) + (!record && prevBest > reached ? ' ' + t('hcRecord', prevBest) : ''),
+      chip: record ? t('hcNewRecord') : null, party: record && !reduceMotion,
+      primary: [t('retry'), newBlitzRun],
+      secondary: [t('menu'), goHome],
+    });
+  }, 650);
+}
+function newBlitzRun(){
+  // Ein abgebrochener Durchgang zählt trotzdem für den Rekord
+  if (isBlitz() && G.board && !G.over && G.n > progress.blitz.best) progress.blitz.best = G.n;
+  progress.run.blitz = null;
+  G.mode = 'blitz'; G.time = BLITZ_START;
+  startLevel(1);
+}
+// Pause (Menü, App im Hintergrund): Uhr anhalten und Restzeit speichern
+function pauseClock(){
+  tLast = null;
+  if (isBlitz() && G.board && !G.over) saveRun();
 }
 
 function renderCoach(){
-  const msg = G.n <= 3 ? t('coach' + G.n) : '';
+  const msg = G.n <= 3 && !isBlitz() ? t('coach' + G.n) : '';
   els.coach.hidden = !msg;
   if (msg) els.coach.textContent = msg;
 }
@@ -1118,16 +1340,20 @@ function onBoardTap(px, py){
   if (r.ok) {
     sndRelease(G.released++); buzz(12);
     if (G.hint === id) G.hint = -1;
-    if (G.board.left === 0) { G.over = true; win(); }
+    if (G.board.left === 0) { G.over = true; if (isBlitz()) blitzWin(); else win(); }
   } else {
-    G.hearts--; G.crashes++;
+    G.crashes++;
     sndCrash(); buzz(70);
-    els.hearts.classList.remove('shake'); void els.hearts.offsetWidth; els.hearts.classList.add('shake');
-    if (isHc()) {
+    const shakeEl = isBlitz() ? els.timer : els.hearts;
+    shakeEl.classList.remove('shake'); void shakeEl.offsetWidth; shakeEl.classList.add('shake');
+    if (isBlitz()) {
+      blitzAdd(-BLITZ_CRASH); // Zusammenstoß kostet Zeit; bei 0 ist der Durchgang vorbei
+    } else if (isHc()) {
       // Herz sofort speichern: App schließen bringt es nicht zurück
+      G.hearts--;
       progress.hc.hearts = Math.max(0, G.hearts);
       if (G.hearts <= 0) { G.over = true; hcGameOver(); } else saveProgress();
-    } else if (G.hearts <= 0) { G.over = true; later(lose, 650); }
+    } else if (--G.hearts <= 0) { G.over = true; later(lose, 650); }
   }
   saveRun();
   renderHud(); kick();
@@ -1214,34 +1440,70 @@ els.dSecondary.addEventListener('click', () => dlgActions.s && dlgActions.s());
 function useHint(){
   if (G.over || !G.board) return;
   if (G.hint !== -1 && G.board.alive[G.hint]) return;
-  const pool = hintPool();
-  if (pool.hints <= 0) return;
+  // Blitz: Tipps sind unbegrenzt, kosten aber Zeit (nicht nutzbar, wenn sie die letzte Zeit kosten würden)
+  if (isBlitz() ? G.time <= BLITZ_HINT : hintPool().hints <= 0) return;
   const free = freeArrows(G.board.level, G.board.alive);
   if (!free.length) return;
   G.hint = free[Math.floor(Math.random() * free.length)];
-  pool.hints--; saveRun();
+  if (isBlitz()) blitzAdd(-BLITZ_HINT); else hintPool().hints--;
+  saveRun();
   buzz(15); renderHud(); kick();
 }
 
 function goHome(){
   cancelPending(); Confetti.stop();
+  pauseClock();
   G.screen = 'home';
   els.dlg.hidden = true;
   els.home.hidden = false;
   renderHome(); kick();
 }
 function goGame(mode){
-  mode = mode === 'hc' ? 'hc' : 'normal';
-  const target = mode === 'hc' ? progress.hc.level : progress.level;
+  mode = mode === 'hc' || mode === 'blitz' ? mode : 'normal';
   G.screen = 'game';
   els.dlg.hidden = true;
   els.home.hidden = true;
-  if (!G.board || G.mode !== mode || G.n !== target || G.over) {
-    G.mode = mode;
-    const run = progress.run[mode];
-    startLevel(target, run && run.n === target ? run : null);
+  if (mode === 'blitz') {
+    // Laufenden Durchgang fortsetzen (Uhr läuft ab jetzt weiter), sonst neuer Durchgang ab Level 1
+    if (!G.board || G.mode !== 'blitz' || G.over) {
+      G.mode = 'blitz';
+      const run = validBlitzRun(progress.run.blitz);
+      G.time = run ? run.time : BLITZ_START;
+      startLevel(run ? run.n : 1, run);
+    }
+  } else {
+    const target = mode === 'hc' ? progress.hc.level : progress.level;
+    if (!G.board || G.mode !== mode || G.n !== target || G.over) {
+      G.mode = mode;
+      const run = progress.run[mode];
+      startLevel(target, run && run.n === target ? run : null);
+    }
   }
+  tLast = null;
   requestAnimationFrame(() => { resize(); kick(); });
+}
+// Blitz-Knopf im Menü: beim allerersten Mal kurz die Regeln zeigen
+function openBlitz(){
+  audio();
+  if (progress.blitz.intro) { goGame('blitz'); return; }
+  showDialog({
+    eyebrow: t('blitz'),
+    title: t('blitzIntroTitle'),
+    text: t('blitzIntroText'),
+    primary: [t('hcStart'), () => { progress.blitz.intro = true; saveProgress(); goGame('blitz'); }],
+    secondary: [t('back'), () => { els.dlg.hidden = true; els.blitz.focus({ preventScroll: true }); }],
+  });
+}
+// „Neu“ im Blitzmodus = neuer Durchgang; ab Level 2 erst nachfragen (Uhr steht solange)
+function restartBlitz(){
+  if (G.n === 1) { newBlitzRun(); return; }
+  showDialog({
+    eyebrow: eyebrow(),
+    title: t('blitzRestartTitle'),
+    text: t('blitzRestartText'),
+    primary: [t('hcRestart'), newBlitzRun],
+    secondary: [t('blitzResume'), () => { els.dlg.hidden = true; tLast = null; kick(); }],
+  });
 }
 // Hardcore-Knopf im Menü: beim allerersten Mal kurz die Regeln zeigen
 function openHc(){
@@ -1269,6 +1531,13 @@ function renderHome(){
   els.hcStats.innerHTML = `<span>${t('level')} <b>${hc.level}</b></span>` +
     (hc.best > 1 ? `<span>${t('hcRecord', `<b>${hc.best}</b>`)}</span>` : '') +
     `<span><b>${hc.hints}</b> ${t('hints')}</span>`;
+  // Blitz: Restzeit des laufenden Durchgangs (sonst Startzeit), Level und Rekord
+  const br = validBlitzRun(progress.run.blitz);
+  els.blitzTime.textContent = fmtTime(br ? br.time : BLITZ_START);
+  const bs = (br ? `<span>${t('level')} <b>${br.n}</b></span>` : '') +
+    (progress.blitz.best > 1 ? `<span>${t('hcRecord', `<b>${progress.blitz.best}</b>`)}</span>` : '');
+  els.blitzStats.innerHTML = bs;
+  els.blitzStats.hidden = !bs;
 }
 
 /* ---------- Vorschau auf dem Startbildschirm ---------- */
@@ -1290,30 +1559,37 @@ function stepDemo(now){
 }
 
 /* ---------- Render-Schleife ---------- */
-let raf = 0;
-function kick(){ if (!raf) raf = requestAnimationFrame(frame); }
+// kick() = neu zeichnen. Im Blitzmodus läuft die Schleife für die Uhr weiter,
+// das Spielfeld wird aber nur gezeichnet, wenn sich etwas bewegt oder geändert hat.
+let raf = 0, dirty = true;
+function kick(){ dirty = true; if (!raf) raf = requestAnimationFrame(frame); }
 function frame(now){
   raf = 0;
   let again = false;
   if (G.screen === 'game' && G.board) {
-    const { w, h, dpr } = fitCanvas(els.board);
-    const ctx = els.board.getContext('2d');
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    ctx.clearRect(0, 0, w, h);
-    G.layout = layoutFor(w, h, G.board.W, G.board.H, 64);
-    drawBoard(ctx, G.board, G.layout, now, { hint: G.hint });
-    again = G.board.busy() || G.hint !== -1 || !!G.board.flash;
+    if (isBlitz() && blitzTick(now)) again = true;
+    if (dirty) {
+      dirty = false;
+      const { w, h, dpr } = fitCanvas(els.board);
+      const ctx = els.board.getContext('2d');
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, w, h);
+      G.layout = layoutFor(w, h, G.board.W, G.board.H, 64);
+      drawBoard(ctx, G.board, G.layout, now, { hint: G.hint });
+      if (G.board.busy() || G.hint !== -1 || G.board.flash) { dirty = true; again = true; }
+    }
   } else if (G.screen === 'home') {
+    dirty = true;
     stepDemo(now);
     const { w, h, dpr } = fitCanvas(els.preview);
     const ctx = els.preview.getContext('2d');
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, w, h);
     const b = demo.board;
-    drawBoard(ctx, b, layoutFor(w, h, b.W, b.H, 40), now, {});
+    if (h >= 44) drawBoard(ctx, b, layoutFor(w, h, b.W, b.H, 40), now, {}); // zu klein → leer lassen
     again = !reduceMotion;
   }
-  if (again) kick();
+  if (again && !raf) raf = requestAnimationFrame(frame);
 }
 function resize(){ kick(); }
 if (window.ResizeObserver) { new ResizeObserver(resize).observe(els.board); new ResizeObserver(resize).observe(els.preview); }
@@ -1332,10 +1608,17 @@ els.board.addEventListener('pointerup', e => {
 });
 els.board.addEventListener('pointercancel', () => { down = null; });
 $('btnHint').addEventListener('click', useHint);
-$('btnRestart').addEventListener('click', () => { if (G.board && !G.over) startLevel(G.n); });
+$('btnRestart').addEventListener('click', () => {
+  if (!G.board || G.over) return;
+  if (isBlitz()) restartBlitz(); else startLevel(G.n);
+});
 $('btnHome').addEventListener('click', goHome);
 els.classic.addEventListener('click', () => { audio(); goGame('normal'); });
 els.hc.addEventListener('click', openHc);
+els.blitz.addEventListener('click', openBlitz);
+// App im Hintergrund: Blitz-Uhr anhalten und Restzeit sichern (Android ruft zusätzlich pfPause auf)
+document.addEventListener('visibilitychange', () => { pauseClock(); if (!document.hidden) kick(); });
+window.pfPause = pauseClock;
 els.sound.addEventListener('click', () => { progress.sound = !progress.sound; saveProgress(); renderHome(); if (progress.sound) tone(660, 0.12, 'triangle', 0.08); });
 els.vib.addEventListener('click', () => { progress.vib = !progress.vib; saveProgress(); renderHome(); buzz(25); });
 /* ---------- Einstellungen (Ton, Vibration, Sprache) ---------- */
@@ -1396,7 +1679,8 @@ applyLanguage();
 function boot(data){
   const d = data || {};
   if (d.screen === 'game' && d.n) {
-    G.mode = d.mode === 'hc' ? 'hc' : 'normal';
+    G.mode = d.mode === 'hc' || d.mode === 'blitz' ? d.mode : 'normal';
+    if (isBlitz()) G.time = Number.isFinite(d.time) && d.time > 0 ? d.time : BLITZ_START;
     G.screen = 'game'; els.home.hidden = true;
     startLevel(d.n, d);
   } else {
@@ -1406,7 +1690,7 @@ function boot(data){
 }
 const hot = window.claude && window.claude.hot;
 if (hot && hot.snapshot) hot.snapshot(() => ({
-  screen: G.screen, mode: G.mode, n: G.n, hearts: G.hearts, crashes: G.crashes,
+  screen: G.screen, mode: G.mode, n: G.n, hearts: G.hearts, crashes: G.crashes, seed: G.seed, time: G.time,
   removed: G.board ? G.board.level.arrows.filter(a => !G.board.alive[a.id]).map(a => a.id) : [],
 }));
 if (hot && hot.ready) hot.ready(boot); else boot(hot && hot.data);
