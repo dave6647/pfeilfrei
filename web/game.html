@@ -424,6 +424,9 @@ const HC_HEARTS = 5;
 const HC_RESET = { level: 1, hearts: HC_HEARTS, hints: 3, newBest: false };
 progress.hc = Object.assign({ best: 1, intro: false }, HC_RESET, progress.hc);
 if (!(progress.hc.hearts > 0)) Object.assign(progress.hc, HC_RESET);
+// Laufendes Level je Modus (welche Pfeile schon raus sind, Herzen, Zusammenstöße, bezahlter Tipp).
+// Wird bei jedem Zug gespeichert, damit Menü, Moduswechsel und Schließen der App nichts verlieren.
+progress.run = Object.assign({ normal: null, hc: null }, progress.run);
 const saveProgress = () => Store.set('progress', progress);
 
 /* ---------- Sprachen (Standard: Englisch) ----------
@@ -1059,14 +1062,32 @@ function startLevel(n, restore){
   G.board = new Board(generateLevel(n));
   G.hearts = isHc() ? progress.hc.hearts : 3;
   G.crashes = 0; G.over = false; G.hint = -1; G.released = 0;
-  if (restore) {
-    for (const id of restore.removed || []) if (G.board.alive[id]) { G.board.remove(id); G.board.gone[id] = true; G.released++; }
-    if (!isHc()) G.hearts = restore.hearts || 3;
-    G.crashes = restore.crashes || 0;
+  const ids = restore && Array.isArray(restore.removed)
+    ? [...new Set(restore.removed)].filter(id => Number.isInteger(id) && id >= 0 && id < G.board.level.arrows.length) : [];
+  if (restore && ids.length < G.board.level.arrows.length) { // kaputter oder schon gelöster Stand → frisch anfangen
+    for (const id of ids) { G.board.remove(id); G.board.gone[id] = true; G.released++; }
+    if (!isHc()) G.hearts = validHearts(restore.hearts);
+    G.crashes = Math.max(0, restore.crashes | 0);
+    if (Number.isInteger(restore.hint) && G.board.alive[restore.hint]) G.hint = restore.hint;
   }
   els.dlg.hidden = true;
+  saveRun();
   renderHud(); renderCoach();
   kick();
+}
+
+// Herzen im klassischen Modus: 1–3, alles andere (kaputter Spielstand) zählt als 3
+const validHearts = h => Number.isInteger(h) && h >= 1 && h <= 3 ? h : 3;
+
+// Stand des laufenden Levels speichern (oder löschen, wenn es vorbei ist)
+function saveRun(){
+  if (!G.board) return;
+  progress.run[G.mode] = G.over ? null : {
+    n: G.n,
+    removed: G.board.level.arrows.filter(a => !G.board.alive[a.id]).map(a => a.id),
+    hearts: G.hearts, crashes: G.crashes, hint: G.hint,
+  };
+  saveProgress();
 }
 
 function renderHud(){
@@ -1108,6 +1129,7 @@ function onBoardTap(px, py){
       if (G.hearts <= 0) { G.over = true; hcGameOver(); } else saveProgress();
     } else if (G.hearts <= 0) { G.over = true; later(lose, 650); }
   }
+  saveRun();
   renderHud(); kick();
 }
 
@@ -1197,7 +1219,7 @@ function useHint(){
   const free = freeArrows(G.board.level, G.board.alive);
   if (!free.length) return;
   G.hint = free[Math.floor(Math.random() * free.length)];
-  pool.hints--; saveProgress();
+  pool.hints--; saveRun();
   buzz(15); renderHud(); kick();
 }
 
@@ -1214,7 +1236,11 @@ function goGame(mode){
   G.screen = 'game';
   els.dlg.hidden = true;
   els.home.hidden = true;
-  if (!G.board || G.mode !== mode || G.n !== target || G.over) { G.mode = mode; startLevel(target); }
+  if (!G.board || G.mode !== mode || G.n !== target || G.over) {
+    G.mode = mode;
+    const run = progress.run[mode];
+    startLevel(target, run && run.n === target ? run : null);
+  }
   requestAnimationFrame(() => { resize(); kick(); });
 }
 // Hardcore-Knopf im Menü: beim allerersten Mal kurz die Regeln zeigen
@@ -1233,7 +1259,8 @@ function openHc(){
 function renderHome(){
   els.sound.setAttribute('aria-checked', String(!!progress.sound));
   els.vib.setAttribute('aria-checked', String(!!progress.vib));
-  els.classicHearts.innerHTML = heartsHtml(3, 3);
+  const run = progress.run.normal;
+  els.classicHearts.innerHTML = heartsHtml(run && run.n === progress.level ? validHearts(run.hearts) : 3, 3);
   els.classicStats.innerHTML = `<span>${t('level')} <b>${progress.level}</b></span>` +
     `<span><b>${progress.flawless}</b> ${t('flawless')}</span><span><b>${progress.hints}</b> ${t('hints')}</span>`;
   const hc = progress.hc;
