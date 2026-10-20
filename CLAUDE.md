@@ -25,6 +25,14 @@ GitHub Actions baut bei jedem Push auf `main` eine APK und veröffentlicht sie a
 - Im Browser ist alles frei; `?free` an die Adresse hängen, um die Gratis-Version zu testen.
 - SharedPreferences-Schlüssel `full` und `price` nicht umbenennen.
 
+## Level
+
+- Level werden aus der Nummer erzeugt (`levelSpec`, `generateLevel` zwischen `// ENGINE START` und `// ENGINE END`).
+- Ändert sich das Feld eines Levels, `LEVEL_GEN` erhöhen: Laufende Level aus der alten Version starten dann frisch
+  (Level, Herzen und Blitz-Zeit bleiben, ein bezahlter Tipp wird zurückgegeben).
+- Level 1–30 bleiben unverändert; `tools/test_levels.js` prüft das über eine Prüfsumme.
+- Große Felder brauchen den Zoom (ab Zellgröße unter `ZOOM_FROM` px): Neue Funktionen am Spielfeld immer auch gezoomt testen.
+
 ## Sonstiges
 
 - Der Nutzer schreibt Deutsch; Commit-Nachrichten auf Deutsch.

@@ -44,7 +44,7 @@ Neue Versionen lassen sich einfach über die alte installieren, der Spielstand b
 | `web/game.html` | Das komplette Spiel (HTML, CSS, JavaScript) inklusive aller Texte (`I18N`). |
 | `web/fonts/` | Schrift Overpass (SIL Open Font License), wird eingebettet. |
 | `tools/build_web.py` | Erzeugt daraus `app/src/main/assets/index.html` für die App. |
-| `tools/test_levels.js` | Prüft, dass alle Level lösbar sind. |
+| `tools/test_levels.js` | Prüft, dass alle Level lösbar sind und Level 1–30 unverändert bleiben. |
 | `tools/test_i18n.js` | Prüft, dass jeder Text in allen Sprachen übersetzt ist. |
 | `app/` | Android-Hülle: zeigt das Spiel in einer WebView, speichert Fortschritt, vibriert. |
 | `.github/workflows/build.yml` | Baut die APK auf GitHub und veröffentlicht sie als Release. |
@@ -62,8 +62,20 @@ Für Schriften außerhalb des lateinischen Alphabets muss zusätzlich eine passe
 ## Level
 
 Die Level werden aus der Levelnummer erzeugt und sind immer gleich.
-Beim Erzeugen wird jeder Pfeil nur dort platziert, wo sein Weg zum Rand gerade frei ist.
-Dadurch ist jedes Level garantiert lösbar.
+
+- **Level 1–30** (Einstieg): Das Feld wächst von 4×5 auf 11×15. Jeder Pfeil wird nur dort platziert,
+  wo sein Weg zum Rand gerade frei ist.
+- **Ab Level 31** wird es ohne Ende schwerer, aber immer langsamer (logarithmisch): Level 60 hat etwa 12×19 Felder,
+  Level 250 etwa 16×26, Level 1000 etwa 20×32, ab etwa Level 2500 höchstens 24×38.
+  Die Pfeile sind länger, kurviger, dicht gepackt und ineinander verschlungen; am Anfang sind nur wenige frei.
+  Dafür bekommt jeder Pfeil beim Erzeugen einen Rang: Wer einem anderen im Weg liegt, muss vorher raus.
+  Ein Pfeil darf überall hin, solange es dafür noch einen passenden Rang gibt.
+
+So ist jedes Level garantiert lösbar, und man kann sich nie festfahren (es gibt immer einen freien Pfeil).
+
+**Zoom**: Wird das Feld zu groß (Zellen kleiner als 30 px), erscheint in der Fußleiste eine Lupe.
+Hineinzoomen geht mit zwei Fingern oder der Lupe, gezoomt verschiebt ein Finger das Feld.
+Ein Tipp holt den Pfeil ins Bild. Jedes Level beginnt mit dem ganzen Feld.
 
 ## Hinweis zum Signaturschlüssel
 
