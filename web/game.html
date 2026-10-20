@@ -79,9 +79,6 @@ button:focus-visible{outline:2px solid var(--l2);outline-offset:2px}
 .lede{margin:0;font-size:17px;line-height:1.45;color:var(--muted);max-width:34ch}
 .preview-wrap{flex:1;min-height:120px;position:relative}
 #preview{position:absolute;inset:0;width:100%;height:100%;display:block}
-.stats{display:flex;gap:18px;flex-wrap:wrap;font-family:var(--mono);font-weight:700;font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
-.stats b{color:var(--ink);font-weight:700}
-.toggles{display:flex;gap:10px}
 .toggle{flex:1;height:46px;border-radius:12px;border:1.5px solid var(--grid);background:transparent;display:flex;align-items:center;justify-content:space-between;
   padding:2px 12px 0 14px;font-weight:700;font-size:15px}
 .toggle .sw{width:36px;height:22px;border-radius:11px;background:var(--grid);position:relative;transition:background .15s}
@@ -89,14 +86,28 @@ button:focus-visible{outline:2px solid var(--l2);outline-offset:2px}
 .toggle[aria-checked="true"] .sw{background:var(--l3)}
 .toggle[aria-checked="true"] .sw::after{transform:translateX(14px)}
 
-.hc-btn{width:100%;border-radius:12px;border:1.5px solid var(--signal);background:transparent;padding:10px 14px 8px;
-  display:flex;flex-direction:column;gap:2px;text-align:left;transition:transform .08s}
-.hc-btn:active{transform:translateY(1px)}
-.hc-top{display:flex;align-items:center;justify-content:space-between;gap:12px}
-.hc-name{font-weight:900;font-size:19px;letter-spacing:-.01em;padding-top:2px}
-.hc-hearts{gap:2px}
-.hc-hearts svg{width:17px;height:17px}
-.hc-sub{font-family:var(--mono);font-weight:700;font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+/* ---------- Hauptmenü: Modus-Karten mit Linienfarbe am linken Rand ---------- */
+.modes{display:flex;flex-direction:column;gap:10px}
+.mode{--line:var(--l3);position:relative;overflow:hidden;width:100%;border-radius:14px;border:1.5px solid var(--rule);background:var(--surface);
+  padding:12px 12px 11px 24px;display:flex;flex-direction:column;gap:3px;text-align:left;transition:transform .08s}
+.mode::before{content:"";position:absolute;left:0;top:0;bottom:0;width:7px;background:var(--line)}
+.mode:active{transform:translateY(1px)}
+.mode.hardcore{--line:var(--signal)}
+.mode-head{display:flex;align-items:center;gap:10px}
+.mode-name{flex:1;min-width:0;font-weight:900;font-size:22px;letter-spacing:-.015em;line-height:1.05;padding-top:3px}
+.mode-hearts{gap:2px}
+.mode-hearts svg{width:16px;height:16px}
+.mode .chev{color:var(--muted);margin-left:2px}
+.mode-pitch{font-size:15px;line-height:1.3;color:var(--muted)}
+.mode-stats{display:flex;flex-wrap:wrap;gap:2px 14px;margin-top:3px;font-family:var(--mono);font-weight:700;font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+.mode-stats b{color:var(--ink);font-weight:700}
+
+.set-btn{width:100%;flex:none}
+.set-label{display:flex;align-items:center;gap:10px}
+.set-ico{width:20px;height:20px;flex:none;stroke:currentColor;fill:none;stroke-width:2.1;stroke-linecap:round}
+.set-btn .chev{color:var(--muted)}
+.set-list{display:flex;flex-direction:column;gap:10px}
+.set-list .toggle{flex:none;width:100%;height:52px;font-size:16px}
 
 .lang-btn{width:100%;flex:none;text-align:left}
 .lang-current{display:flex;align-items:center;gap:4px;min-width:0;color:var(--muted)}
@@ -104,7 +115,7 @@ button:focus-visible{outline:2px solid var(--l2);outline-offset:2px}
 .chev{width:18px;height:18px;flex:none;stroke:currentColor;fill:none;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
 
 /* ---------- language sheet: the list is drawn as a metro line with one stop per language ---------- */
-.lang-sheet{max-height:calc(100% - 24px);overflow-y:auto}
+.lang-sheet,.set-sheet{max-height:calc(100% - 24px);overflow-y:auto}
 .sheet-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
 .sheet .sheet-title{font-size:28px}
 .lang-list{position:relative;display:flex;flex-direction:column;padding-block:4px}
@@ -142,6 +153,8 @@ button:focus-visible{outline:2px solid var(--l2);outline-offset:2px}
   .wordmark{font-size:clamp(46px,14vw,72px)}
   .lede{font-size:15.5px}
   .preview-wrap{min-height:72px}
+  .modes{gap:8px}
+  .mode{padding-block:10px 9px}
 }
 @media (prefers-reduced-motion: reduce){
   .sheet,.sheet.party h2,.hearts.shake{animation:none}
@@ -173,19 +186,22 @@ button:focus-visible{outline:2px solid var(--l2);outline-offset:2px}
     <h1 class="wordmark">Arrow<br>Escape<span>.</span></h1>
     <p class="lede" data-i18n="lede">Each arrow moves only in the direction it points. Find the order that gets every arrow off the board without a crash.</p>
     <div class="preview-wrap"><canvas id="preview" aria-hidden="true"></canvas></div>
-    <button id="btnPlay" class="btn primary wide">Play level 1</button>
-    <div class="stats" id="stats"></div>
-    <button id="btnHc" class="hc-btn">
-      <span class="hc-top"><span class="hc-name" data-i18n="hardcore">Hardcore</span><span id="hcHearts" class="hearts hc-hearts" role="img"></span></span>
-      <span id="hcSub" class="hc-sub"></span>
-    </button>
-    <div class="toggles">
-      <button id="tglSound" class="toggle" role="switch" aria-checked="true"><span data-i18n="sound">Sound</span> <span class="sw"></span></button>
-      <button id="tglVib" class="toggle" role="switch" aria-checked="true"><span data-i18n="vibration">Vibration</span> <span class="sw"></span></button>
-    </div>
-    <button id="btnLang" class="toggle lang-btn" aria-haspopup="dialog">
-      <span data-i18n="language">Language</span>
-      <span class="lang-current"><span id="langName">English</span><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></span>
+    <!-- Hauptmenü: ein Eintrag pro Modus, wie Linien auf einem Netzplan -->
+    <nav class="modes">
+      <button id="btnClassic" class="mode classic">
+        <span class="mode-head"><span class="mode-name" data-i18n="classic">Classic</span><span id="classicHearts" class="hearts mode-hearts" aria-hidden="true"></span><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></span>
+        <span class="mode-pitch" data-i18n="classicPitch">3 hearts per level</span>
+        <span id="classicStats" class="mode-stats"></span>
+      </button>
+      <button id="btnHc" class="mode hardcore">
+        <span class="mode-head"><span class="mode-name" data-i18n="hardcore">Hardcore</span><span id="hcHearts" class="hearts mode-hearts" role="img"></span><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></span>
+        <span class="mode-pitch" data-i18n="hcPitch">5 hearts for all levels</span>
+        <span id="hcStats" class="mode-stats"></span>
+      </button>
+    </nav>
+    <button id="btnSettings" class="toggle set-btn" aria-haspopup="dialog">
+      <span class="set-label"><svg class="set-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2.2"/><circle cx="9" cy="17" r="2.2"/></svg><span data-i18n="settings">Settings</span></span>
+      <svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
     </button>
   </div>
 </section>
@@ -199,6 +215,23 @@ button:focus-visible{outline:2px solid var(--l2);outline-offset:2px}
     <div class="row">
       <button id="dlgSecondary" class="btn">Menu</button>
       <button id="dlgPrimary" class="btn primary">Next</button>
+    </div>
+  </div>
+</div>
+
+<div id="setDlg" class="dlg" hidden>
+  <div class="sheet set-sheet" role="dialog" aria-modal="true" aria-labelledby="setTitle">
+    <div class="sheet-head">
+      <h2 id="setTitle" class="sheet-title" data-i18n="settings">Settings</h2>
+      <button id="setClose" class="btn" data-i18n="close">Done</button>
+    </div>
+    <div class="set-list">
+      <button id="tglSound" class="toggle" role="switch" aria-checked="true"><span data-i18n="sound">Sound</span> <span class="sw"></span></button>
+      <button id="tglVib" class="toggle" role="switch" aria-checked="true"><span data-i18n="vibration">Vibration</span> <span class="sw"></span></button>
+      <button id="btnLang" class="toggle lang-btn" aria-haspopup="dialog">
+        <span data-i18n="language">Language</span>
+        <span class="lang-current"><span id="langName">English</span><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></span>
+      </button>
     </div>
   </div>
 </div>
@@ -408,10 +441,10 @@ const LANGS = [
 ];
 const I18N = {
   en: {
+    classic: 'Classic', classicPitch: '3 hearts per level', settings: 'Settings',
     eyebrow: 'Arrow puzzle',
     lede: 'Each arrow moves only in the direction it points. Find the order that gets every arrow off the board without a crash.',
-    play: n => `Play level ${n}`,
-    solved: 'solved', flawless: 'flawless', hints: 'hints',
+    flawless: 'flawless', hints: 'hints',
     sound: 'Sound', vibration: 'Vibration', language: 'Language',
     languageTitle: 'Choose language', close: 'Done',
     level: 'Level', menuAria: 'Menu', boardAria: 'Game board',
@@ -441,10 +474,10 @@ const I18N = {
     hcRestart: 'Start over',
   },
   de: {
+    classic: 'Klassisch', classicPitch: '3 Herzen pro Level', settings: 'Einstellungen',
     eyebrow: 'Pfeil-Puzzle',
     lede: 'Jeder Pfeil fährt nur in seine Richtung. Finde die Reihenfolge, in der alle das Feld verlassen, ohne zusammenzustoßen.',
-    play: n => `Level ${n} spielen`,
-    solved: 'geschafft', flawless: 'fehlerfrei', hints: 'Tipps',
+    flawless: 'fehlerfrei', hints: 'Tipps',
     sound: 'Ton', vibration: 'Vibration', language: 'Sprache',
     languageTitle: 'Sprache wählen', close: 'Fertig',
     level: 'Level', menuAria: 'Menü', boardAria: 'Spielfeld',
@@ -474,10 +507,10 @@ const I18N = {
     hcRestart: 'Von vorn',
   },
   es: {
+    classic: 'Clásico', classicPitch: '3 corazones por nivel', settings: 'Ajustes',
     eyebrow: 'Puzle de flechas',
     lede: 'Cada flecha solo avanza en la dirección a la que apunta. Encuentra el orden para sacarlas todas del tablero sin que choquen.',
-    play: n => `Jugar nivel ${n}`,
-    solved: 'superados', flawless: 'perfectos', hints: 'pistas',
+    flawless: 'perfectos', hints: 'pistas',
     sound: 'Sonido', vibration: 'Vibración', language: 'Idioma',
     languageTitle: 'Elige el idioma', close: 'Listo',
     level: 'Nivel', menuAria: 'Menú', boardAria: 'Tablero',
@@ -507,10 +540,10 @@ const I18N = {
     hcRestart: 'Empezar de nuevo',
   },
   pt: {
+    classic: 'Clássico', classicPitch: '3 corações por nível', settings: 'Configurações',
     eyebrow: 'Quebra-cabeça de setas',
     lede: 'Cada seta só anda na direção para onde aponta. Descubra a ordem para tirar todas do tabuleiro sem nenhuma batida.',
-    play: n => `Jogar nível ${n}`,
-    solved: 'concluídos', flawless: 'perfeitos', hints: 'dicas',
+    flawless: 'perfeitos', hints: 'dicas',
     sound: 'Som', vibration: 'Vibração', language: 'Idioma',
     languageTitle: 'Escolha o idioma', close: 'Pronto',
     level: 'Nível', menuAria: 'Menu', boardAria: 'Tabuleiro',
@@ -540,10 +573,10 @@ const I18N = {
     hcRestart: 'Recomeçar',
   },
   fr: {
+    classic: 'Classique', classicPitch: '3 cœurs par niveau', settings: 'Réglages',
     eyebrow: 'Puzzle de flèches',
     lede: 'Chaque flèche avance seulement dans la direction qu’elle indique. Trouve l’ordre qui fait sortir toutes les flèches du plateau sans collision.',
-    play: n => `Jouer le niveau ${n}`,
-    solved: 'réussis', flawless: 'parfaits', hints: 'indices',
+    flawless: 'parfaits', hints: 'indices',
     sound: 'Son', vibration: 'Vibration', language: 'Langue',
     languageTitle: 'Choisir la langue', close: 'OK',
     level: 'Niveau', menuAria: 'Menu', boardAria: 'Plateau de jeu',
@@ -573,10 +606,10 @@ const I18N = {
     hcRestart: 'Recommencer',
   },
   id: {
+    classic: 'Klasik', classicPitch: '3 nyawa per level', settings: 'Pengaturan',
     eyebrow: 'Teka-teki panah',
     lede: 'Setiap panah hanya bergerak ke arah yang ditunjuknya. Temukan urutan yang tepat agar semua panah keluar dari papan tanpa bertabrakan.',
-    play: n => `Main level ${n}`,
-    solved: 'selesai', flawless: 'sempurna', hints: 'petunjuk',
+    flawless: 'sempurna', hints: 'petunjuk',
     sound: 'Suara', vibration: 'Getar', language: 'Bahasa',
     languageTitle: 'Pilih bahasa', close: 'Selesai',
     level: 'Level', menuAria: 'Menu', boardAria: 'Papan permainan',
@@ -606,10 +639,10 @@ const I18N = {
     hcRestart: 'Mulai lagi',
   },
   tr: {
+    classic: 'Klasik', classicPitch: 'Her seviyede 3 can', settings: 'Ayarlar',
     eyebrow: 'Ok bulmacası',
     lede: 'Her ok yalnızca gösterdiği yöne gider. Tüm okları çarpışmadan tahtadan çıkaracak sırayı bul.',
-    play: n => `${n}. seviyeyi oyna`,
-    solved: 'tamamlandı', flawless: 'kusursuz', hints: 'ipucu',
+    flawless: 'kusursuz', hints: 'ipucu',
     sound: 'Ses', vibration: 'Titreşim', language: 'Dil',
     languageTitle: 'Dil seç', close: 'Tamam',
     level: 'Seviye', menuAria: 'Menü', boardAria: 'Oyun tahtası',
@@ -999,8 +1032,9 @@ const $ = id => document.getElementById(id);
 const els = {
   app: $('app'), home: $('home'), dlg: $('dlg'), board: $('board'), preview: $('preview'),
   lvl: $('lvlNum'), lvlLabel: $('lvlLabel'), hearts: $('hearts'), left: $('left'), hint: $('btnHint'), hintCount: $('hintCount'),
-  coach: $('coach'), play: $('btnPlay'), stats: $('stats'), sound: $('tglSound'), vib: $('tglVib'),
-  hc: $('btnHc'), hcHearts: $('hcHearts'), hcSub: $('hcSub'),
+  coach: $('coach'), sound: $('tglSound'), vib: $('tglVib'),
+  classic: $('btnClassic'), classicHearts: $('classicHearts'), classicStats: $('classicStats'),
+  hc: $('btnHc'), hcHearts: $('hcHearts'), hcStats: $('hcStats'),
   dEyebrow: $('dlgEyebrow'), dTitle: $('dlgTitle'), dText: $('dlgText'), dReward: $('dlgReward'),
   dPrimary: $('dlgPrimary'), dSecondary: $('dlgSecondary'), dSheet: document.querySelector('#dlg .sheet'),
 };
@@ -1195,18 +1229,19 @@ function openHc(){
     secondary: [t('back'), () => { els.dlg.hidden = true; els.hc.focus({ preventScroll: true }); }],
   });
 }
+// Hauptmenü: je Modus Name, Regel und aktueller Stand
 function renderHome(){
-  els.play.textContent = t('play', progress.level);
-  const done = progress.level - 1;
-  els.stats.innerHTML = `<span><b>${done}</b> ${t('solved')}</span><span><b>${progress.flawless}</b> ${t('flawless')}</span><span><b>${progress.hints}</b> ${t('hints')}</span>`;
   els.sound.setAttribute('aria-checked', String(!!progress.sound));
   els.vib.setAttribute('aria-checked', String(!!progress.vib));
+  els.classicHearts.innerHTML = heartsHtml(3, 3);
+  els.classicStats.innerHTML = `<span>${t('level')} <b>${progress.level}</b></span>` +
+    `<span><b>${progress.flawless}</b> ${t('flawless')}</span><span><b>${progress.hints}</b> ${t('hints')}</span>`;
   const hc = progress.hc;
   els.hcHearts.innerHTML = heartsHtml(hc.hearts, HC_HEARTS);
   els.hcHearts.setAttribute('aria-label', t('hearts', hc.hearts));
-  const neverPlayed = hc.level === 1 && hc.hearts === HC_HEARTS && hc.best <= 1;
-  els.hcSub.textContent = neverPlayed ? t('hcPitch')
-    : `${t('level')} ${hc.level}` + (hc.best > hc.level ? ` · ${t('hcRecord', hc.best)}` : '');
+  els.hcStats.innerHTML = `<span>${t('level')} <b>${hc.level}</b></span>` +
+    (hc.best > 1 ? `<span>${t('hcRecord', `<b>${hc.best}</b>`)}</span>` : '') +
+    `<span><b>${hc.hints}</b> ${t('hints')}</span>`;
 }
 
 /* ---------- Vorschau auf dem Startbildschirm ---------- */
@@ -1272,10 +1307,18 @@ els.board.addEventListener('pointercancel', () => { down = null; });
 $('btnHint').addEventListener('click', useHint);
 $('btnRestart').addEventListener('click', () => { if (G.board && !G.over) startLevel(G.n); });
 $('btnHome').addEventListener('click', goHome);
-els.play.addEventListener('click', () => { audio(); goGame('normal'); });
+els.classic.addEventListener('click', () => { audio(); goGame('normal'); });
 els.hc.addEventListener('click', openHc);
 els.sound.addEventListener('click', () => { progress.sound = !progress.sound; saveProgress(); renderHome(); if (progress.sound) tone(660, 0.12, 'triangle', 0.08); });
 els.vib.addEventListener('click', () => { progress.vib = !progress.vib; saveProgress(); renderHome(); buzz(25); });
+/* ---------- Einstellungen (Ton, Vibration, Sprache) ---------- */
+const setDlg = $('setDlg');
+function openSettings(){ setDlg.hidden = false; setTimeout(() => $('setClose').focus({ preventScroll: true }), 50); }
+function closeSettings(){ setDlg.hidden = true; $('btnSettings').focus({ preventScroll: true }); }
+$('btnSettings').addEventListener('click', openSettings);
+$('setClose').addEventListener('click', closeSettings);
+setDlg.addEventListener('click', e => { if (e.target === setDlg) closeSettings(); });
+
 /* ---------- Sprachauswahl ---------- */
 const langDlg = $('langDlg'), langList = $('langList');
 function renderLangList(){
@@ -1309,6 +1352,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') window.pfBac
 // Zurück-Taste unter Android: true = erledigt, false = App schließen
 window.pfBack = function(){
   if (!langDlg.hidden) { closeLang(); return true; }
+  if (!setDlg.hidden) { closeSettings(); return true; }
   if (!els.dlg.hidden || G.screen === 'game') { goHome(); return true; }
   return false;
 };
