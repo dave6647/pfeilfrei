@@ -33,6 +33,12 @@ GitHub Actions baut bei jedem Push auf `main` eine APK und veröffentlicht sie a
 - Level 1–30 bleiben unverändert; `tools/test_levels.js` prüft das über eine Prüfsumme.
 - Große Felder brauchen den Zoom (ab Zellgröße unter `ZOOM_FROM` px): Neue Funktionen am Spielfeld immer auch gezoomt testen.
 
+## Fußleiste im Spiel
+
+- Enthält „N Pfeile übrig“, Lupe (nur große Felder), Raster, Tipp, Neu. Auf 360 px ist sie damit voll:
+  `fitFooter()` macht erst „Neu“ zum Symbol (`compact`), dann „Tipp“ zur Glühbirne (`tight`).
+- Änderungen dort in allen 7 Sprachen × 3 Modi auf 360 px testen (Blitz mit großem Level, weil der Tipp-Knopf „−3 s“ zeigt).
+
 ## Sonstiges
 
 - Der Nutzer schreibt Deutsch; Commit-Nachrichten auf Deutsch.
