@@ -73,4 +73,7 @@ android {
 dependencies {
     // Google Play Billing für den Kauf der Vollversion (ab 31.08.2026 verlangt Play mindestens Version 8)
     implementation 'com.android.billingclient:billing:9.1.0'
+    // Billing bringt Kotlin-Bibliotheken in zwei Versionen mit (stdlib 1.8 und stdlib-jdk7/-jdk8 1.6);
+    // die BOM zieht alle auf dieselbe Version, sonst „Duplicate class kotlin…“
+    implementation platform('org.jetbrains.kotlin:kotlin-bom:1.8.22')
 }
