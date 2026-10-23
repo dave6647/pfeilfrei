@@ -42,6 +42,14 @@ GitHub Actions baut bei jedem Push auf `main` eine APK und veröffentlicht sie a
   Rekord bleibt) – immer mit Nachfrage, „Weiterspielen“ ist dort der hervorgehobene Knopf.
 - Änderungen dort in allen 7 Sprachen × 3 Modi auf 360 px testen (Blitz mit großem Level, weil der Tipp-Knopf „−3 s“ zeigt).
 
+## Streak und Gewinn-Effekte
+
+- Die Streak (`STREAK_GAP` 1200 ms, Schild ab `STREAK_SHOW` = 3, `streakStep()`, `showStreak()`) ist nur Anzeige und Ton:
+  Sie darf nie Herzen, Zeit, Tipps oder den Spielstand beeinflussen und wird nicht gespeichert. Zusammenstoß oder neues Level beenden sie.
+- Der Ton beim Rausfahren (`sndRelease`) steigt mit der Streak, nicht mit der Zahl der Pfeile.
+- „Perfekte Runde!“ (`showPerfect()` / `hidePerfect()`) erscheint nur zusammen mit dem Konfetti eines fehlerfreien Levels
+  (Klassisch/Hardcore) und blendet aus, sobald das Ergebnis-Fenster kommt.
+
 ## Sonstiges
 
 - Der Nutzer schreibt Deutsch; Commit-Nachrichten auf Deutsch.

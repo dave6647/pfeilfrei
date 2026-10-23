@@ -133,6 +133,33 @@ button:focus-visible{outline:2px solid var(--l2);outline-offset:2px}
   pointer-events:none;box-shadow:0 6px 20px rgba(0,0,0,.25);animation:toast 6s ease forwards}
 @keyframes toast{0%{opacity:0;transform:translate(-50%,10px)}6%,86%{opacity:1;transform:translate(-50%,0)}100%{opacity:0;transform:translate(-50%,0)}}
 @media (prefers-reduced-motion: reduce){.toast{animation:none}}
+/* Streak: Schild wie die Level-Plakette („STREAK ×5“), schwebt über der angetippten Stelle hoch und verblasst.
+   Farbe wechselt alle 5er-Stufen über die Linienfarben, jede 5. Streak etwas größer. Nur Anzeige, fängt keine Berührungen ab. */
+.streak{position:absolute;z-index:3;left:0;top:0;display:flex;align-items:center;gap:6px;height:30px;padding:2px 11px 0;border-radius:15px;
+  background:var(--ink);color:var(--paper);white-space:nowrap;pointer-events:none;box-shadow:0 4px 14px rgba(0,0,0,.2);
+  transform:translateX(-50%);animation:streak .95s ease-out forwards}
+.streak .s-word{font-size:10px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;opacity:.9}
+.streak b{font-family:var(--mono);font-size:18px;font-weight:700;font-variant-numeric:tabular-nums}
+.streak.t1{background:var(--l3);color:var(--surface)}
+.streak.t2{background:var(--l2);color:var(--surface)}
+.streak.t3{background:var(--l5);color:var(--surface)}
+.streak.t4{background:var(--l1);color:var(--surface)}
+.streak.t5{background:var(--l7);color:var(--surface)}
+.streak.big{height:36px;border-radius:18px;padding-inline:13px}
+.streak.big b{font-size:23px}
+@keyframes streak{0%{opacity:0;transform:translate(-50%,8px) scale(.55)}14%{opacity:1;transform:translate(-50%,0) scale(1.14)}
+  26%{transform:translate(-50%,-2px) scale(1)}68%{opacity:1}100%{opacity:0;transform:translate(-50%,-30px) scale(1)}}
+/* „Perfekte Runde!“: Schild mitten im Feld, springt zusammen mit dem Konfetti hinein (fehlerfrei gelöst, Klassisch/Hardcore).
+   Unterkante in den Linienfarben; blendet aus, sobald das Ergebnis-Fenster kommt. */
+.perfect{position:absolute;left:50%;top:50%;z-index:4;margin:0;width:max-content;max-width:calc(100% - 16px);overflow:hidden;
+  padding:12px 22px 15px;border-radius:16px;background:var(--ink);color:var(--paper);text-align:center;text-wrap:balance;
+  font-weight:900;font-size:clamp(26px,8vw,40px);line-height:1;letter-spacing:-.02em;pointer-events:none;
+  box-shadow:0 10px 32px rgba(0,0,0,.28);transform:translate(-50%,-50%) rotate(-3deg);
+  animation:perfectIn .6s cubic-bezier(.2,1.4,.35,1) both;transition:opacity .25s}
+.perfect::after{content:"";position:absolute;left:0;right:0;bottom:0;height:6px;
+  background:linear-gradient(90deg,var(--l1) 0 20%,var(--l4) 0 40%,var(--hint) 0 60%,var(--l3) 0 80%,var(--l2) 0)}
+.perfect.out{opacity:0}
+@keyframes perfectIn{0%{opacity:0;transform:translate(-50%,-50%) rotate(-12deg) scale(2.1)}55%{opacity:1}100%{transform:translate(-50%,-50%) rotate(-3deg) scale(1)}}
 
 /* ---------- home ---------- */
 .screen{position:fixed;inset:0;background:var(--paper);z-index:5;overflow-y:auto;overscroll-behavior:contain;
@@ -257,6 +284,8 @@ button:focus-visible{outline:2px solid var(--l2);outline-offset:2px}
 @media (prefers-reduced-motion: reduce){
   .sheet,.sheet.party h2,.hearts.shake,.timer.shake,.timer.low .t-txt{animation:none}
   .tfloat,.tfloat.minus{animation:tfade 1.1s forwards}
+  .streak{animation:tfade .95s forwards}
+  .perfect{animation:none}
 }
 </style>
 
@@ -275,6 +304,7 @@ button:focus-visible{outline:2px solid var(--l2);outline-offset:2px}
     <canvas id="board" data-i18n-aria="boardAria" aria-label="Game board"></canvas>
     <p id="coach" class="coach" hidden></p>
     <p id="zoomTip" class="toast" role="status" hidden></p>
+    <p id="perfect" class="perfect" role="status" hidden></p>
   </main>
   <footer id="foot" class="foot">
     <!-- „Modus neu“ (nur Klassisch und Hardcore): ganzen Modus auf Level 1 zurücksetzen, mit Nachfrage.
@@ -841,6 +871,9 @@ const I18N = {
     resetTitle: m => `Start ${m} over?`,
     resetTextNormal: n => `Back to level 1 with 3 hints. Your progress up to level ${n} and your flawless count are reset.`,
     resetTextHc: 'Back to level 1 with 5 hearts and 3 hints. Your best stays.',
+    streak: 'Streak', // schwebendes Schild beim schnellen Antippen („STREAK ×5“)
+    streakBest: n => `Longest streak: ${n}.`,
+    perfect: 'Perfect round!', // beim Konfetti (fehlerfrei gelöst)
     debug: 'Debug', // nur Test-APK
   },
   de: {
@@ -902,6 +935,9 @@ const I18N = {
     resetTitle: m => `${m} neu beginnen?`,
     resetTextNormal: n => `Zurück auf Level 1 mit 3 Tipps. Dein Fortschritt bis Level ${n} und der Fehlerfrei-Zähler werden zurückgesetzt.`,
     resetTextHc: 'Zurück auf Level 1 mit 5 Herzen und 3 Tipps. Dein Rekord bleibt.',
+    streak: 'Streak',
+    streakBest: n => `Längste Streak: ${n}.`,
+    perfect: 'Perfekte Runde!',
     debug: 'Debug', // nur Test-APK
   },
   es: {
@@ -963,6 +999,9 @@ const I18N = {
     resetTitle: m => `¿Reiniciar el modo ${m}?`,
     resetTextNormal: n => `Vuelves al nivel 1 con 3 pistas. Se borran tu progreso hasta el nivel ${n} y tu contador de niveles perfectos.`,
     resetTextHc: 'Vuelves al nivel 1 con 5 corazones y 3 pistas. Tu récord se mantiene.',
+    streak: 'Racha',
+    streakBest: n => `Mejor racha: ${n}.`,
+    perfect: '¡Ronda perfecta!',
     debug: 'Debug', // nur Test-APK
   },
   pt: {
@@ -1024,6 +1063,9 @@ const I18N = {
     resetTitle: m => `Reiniciar o modo ${m}?`,
     resetTextNormal: n => `Você volta ao nível 1 com 3 dicas. Seu progresso até o nível ${n} e a contagem de níveis perfeitos são zerados.`,
     resetTextHc: 'Você volta ao nível 1 com 5 corações e 3 dicas. Seu recorde continua.',
+    streak: 'Sequência',
+    streakBest: n => `Maior sequência: ${n}.`,
+    perfect: 'Rodada perfeita!',
     debug: 'Debug', // nur Test-APK
   },
   fr: {
@@ -1085,6 +1127,9 @@ const I18N = {
     resetTitle: m => `Recommencer le mode ${m}\u00A0?`,
     resetTextNormal: n => `Retour au niveau 1 avec 3 indices. Ta progression jusqu’au niveau ${n} et ton compteur de niveaux parfaits sont remis à zéro.`,
     resetTextHc: 'Retour au niveau 1 avec 5 cœurs et 3 indices. Ton record est conservé.',
+    streak: 'Série',
+    streakBest: n => `Meilleure série : ${n}.`,
+    perfect: 'Manche parfaite\u00A0!',
     debug: 'Debug', // nur Test-APK
   },
   id: {
@@ -1146,6 +1191,9 @@ const I18N = {
     resetTitle: m => `Mulai ulang mode ${m}?`,
     resetTextNormal: n => `Kembali ke level 1 dengan 3 petunjuk. Progresmu sampai level ${n} dan jumlah level sempurna diatur ulang.`,
     resetTextHc: 'Kembali ke level 1 dengan 5 nyawa dan 3 petunjuk. Rekormu tetap tersimpan.',
+    streak: 'Kombo',
+    streakBest: n => `Kombo terbaik: ${n}.`,
+    perfect: 'Ronde sempurna!',
     debug: 'Debug', // nur Test-APK
   },
   tr: {
@@ -1207,6 +1255,9 @@ const I18N = {
     resetTitle: m => `${m} baştan başlasın mı?`,
     resetTextNormal: n => `3 ipucuyla 1. seviyeye dönersin. ${n}. seviyeye kadarki ilerlemen ve kusursuz sayacın sıfırlanır.`,
     resetTextHc: '5 can ve 3 ipucuyla 1. seviyeye dönersin. Rekorun kalır.',
+    streak: 'Seri',
+    streakBest: n => `En uzun seri: ${n}.`,
+    perfect: 'Kusursuz tur!',
     debug: 'Debug', // nur Test-APK
   },
 };
@@ -1252,11 +1303,16 @@ function tone(freq, dur, type, vol, when, slideTo){
   o.start(t); o.stop(t + dur + 0.03);
 }
 const SCALE = [0, 2, 4, 7, 9];
+// Pfeil fährt raus. i = Stelle in der Streak (0 = erster Pfeil): je länger die Streak, desto höher der Ton
+// (Pentatonik über zwei Oktaven, danach bleibt sie in der oberen). Bricht die Streak ab, geht es unten wieder los.
 function sndRelease(i){
-  const semis = SCALE[i % 5] + 12 * (Math.floor(i / 5) % 2);
+  if (i >= 10) i = 5 + (i - 10) % 5;
+  const semis = SCALE[i % 5] + 12 * Math.floor(i / 5);
   const f = 392 * Math.pow(2, semis / 12);
   tone(f, 0.18, 'triangle', 0.11); tone(f * 2, 0.09, 'sine', 0.035);
 }
+// Jede 5. Streak: kurzes Glitzern obendrauf
+function sndStreak(){ [0, 4, 7].forEach((s, i) => tone(2093 * Math.pow(2, s / 12), 0.12, 'sine', 0.03, 0.05 + i * 0.05)); }
 function sndCrash(){ tone(150, 0.24, 'sine', 0.28, 0, 50); tone(80, 0.1, 'square', 0.04); }
 function sndWin(){ [0, 4, 7, 12, 16].forEach((s, i) => tone(523 * Math.pow(2, s / 12), 0.34, 'triangle', 0.09, i * 0.085)); }
 // Konfetti-Kanone: kurzes Rauschen (Knall) + tiefer Schlag
@@ -1595,7 +1651,7 @@ const Confetti = (() => {
 /* ---------- UI ---------- */
 const $ = id => document.getElementById(id);
 const els = {
-  app: $('app'), home: $('home'), dlg: $('dlg'), board: $('board'), preview: $('preview'),
+  app: $('app'), home: $('home'), dlg: $('dlg'), board: $('board'), wrap: $('boardWrap'), perfect: $('perfect'), preview: $('preview'),
   lvl: $('lvlNum'), lvlLabel: $('lvlLabel'), hearts: $('hearts'), hint: $('btnHint'), reset: $('btnReset'), hintCount: $('hintCount'),
   coach: $('coach'), sound: $('tglSound'), vib: $('tglVib'), zoom: $('btnZoom'), grid: $('btnGrid'), zoomTip: $('zoomTip'), foot: $('foot'), restart: $('btnRestart'),
   classic: $('btnClassic'), classicHearts: $('classicHearts'), classicStats: $('classicStats'),
@@ -1609,8 +1665,8 @@ const heartsHtml = (have, max) => Array.from({ length: max }, (_, i) => `<span c
 
 // mode: 'normal' (3 Herzen pro Level), 'hc' (Hardcore: 5 Herzen für alle Level, eigener Spielstand)
 // oder 'blitz' (zufällige Level gegen die Uhr; G.time = Restzeit in ms, G.seed = Startwert des Feldes)
-const G = { mode: 'normal', n: 1, board: null, hearts: 3, crashes: 0, over: false, hint: -1, released: 0, layout: null, screen: 'home', skip: null,
-            time: BLITZ_START, seed: 0 };
+const G = { mode: 'normal', n: 1, board: null, hearts: 3, crashes: 0, over: false, hint: -1, layout: null, screen: 'home', skip: null,
+            time: BLITZ_START, seed: 0, streak: 0, streakAt: 0, streakBest: 0 };
 const isHc = () => G.mode === 'hc';
 const isBlitz = () => G.mode === 'blitz';
 const hintPool = () => isHc() ? progress.hc : progress; // beide haben .hints (Blitz: Tipps kosten Zeit)
@@ -1635,14 +1691,15 @@ function startLevel(n, restore){
   G.board = new Board(generateLevel(n, isBlitz() ? G.seed : undefined));
   resetZoom();
   G.hearts = isHc() ? progress.hc.hearts : 3;
-  G.crashes = 0; G.over = false; G.hint = -1; G.released = 0;
+  G.crashes = 0; G.over = false; G.hint = -1;
+  resetStreak(); G.streakBest = 0; hidePerfect();
   // Stand aus einer älteren Level-Erzeugung (anderes Feld ab Level 31): Level, Herzen und Zeit bleiben,
   // die entfernten Pfeile und der Tipp gehörten aber zum alten Feld → Feld frisch
   const sameField = restore && (restore.v === LEVEL_GEN || n <= 30);
   const ids = sameField && Array.isArray(restore.removed)
     ? [...new Set(restore.removed)].filter(id => Number.isInteger(id) && id >= 0 && id < G.board.level.arrows.length) : [];
   if (restore && ids.length < G.board.level.arrows.length) { // kaputter oder schon gelöster Stand → frisch anfangen
-    for (const id of ids) { G.board.remove(id); G.board.gone[id] = true; G.released++; }
+    for (const id of ids) { G.board.remove(id); G.board.gone[id] = true; }
     if (G.mode === 'normal') G.hearts = validHearts(restore.hearts);
     G.crashes = Math.max(0, restore.crashes | 0);
     if (sameField && Number.isInteger(restore.hint) && G.board.alive[restore.hint]) G.hint = restore.hint;
@@ -1784,6 +1841,61 @@ function renderCoach(){
   if (msg) els.coach.textContent = msg;
 }
 
+/* ---------- Streak ----------
+   Pfeile schnell hintereinander rausfahren: Jeder Pfeil, der höchstens STREAK_GAP ms nach dem vorigen rausfährt,
+   zählt die Streak hoch. Ab STREAK_SHOW schwebt ein Schild „STREAK ×N“ über der angetippten Stelle, der Ton steigt mit.
+   Ein Zusammenstoß oder ein neues Level beendet sie. Nur zur Motivation: kein Einfluss auf Herzen, Zeit, Tipps
+   oder den Spielstand (nicht gespeichert). Die längste Streak des Levels steht im Gewinnfenster. */
+const STREAK_GAP = 1200, STREAK_SHOW = 3;
+let streakEl = null;
+function resetStreak(){
+  G.streak = 0; G.streakAt = 0;
+  if (streakEl) { streakEl.remove(); streakEl = null; }
+}
+// Pfeil ist rausgefahren: Streak weiterzählen oder neu bei 1 beginnen; gibt die neue Länge zurück
+function streakStep(now, x, y){
+  G.streak = G.streakAt && now - G.streakAt <= STREAK_GAP ? G.streak + 1 : 1;
+  G.streakAt = now;
+  G.streakBest = Math.max(G.streakBest, G.streak);
+  if (G.streak >= STREAK_SHOW) showStreak(G.streak, x, y);
+  return G.streak;
+}
+function showStreak(n, x, y){
+  if (streakEl) streakEl.remove(); // immer nur das neueste Schild
+  const el = streakEl = document.createElement('span');
+  const tier = n >= 30 ? 5 : n >= 20 ? 4 : n >= 15 ? 3 : n >= 10 ? 2 : n >= 5 ? 1 : 0;
+  el.className = 'streak t' + tier + (n % 5 === 0 ? ' big' : '');
+  el.setAttribute('aria-hidden', 'true');
+  const word = document.createElement('span'), num = document.createElement('b');
+  word.className = 's-word'; word.textContent = t('streak');
+  num.textContent = '×' + n;
+  el.append(word, num);
+  els.wrap.appendChild(el);
+  // über dem Finger (sonst darunter, wenn oben kein Platz ist), seitlich im Spielfeld halten
+  const w = el.offsetWidth, h = el.offsetHeight, W = els.wrap.clientWidth;
+  el.style.left = Math.round(Math.max(w / 2 + 6, Math.min(W - w / 2 - 6, x))) + 'px';
+  el.style.top = Math.round(y - 30 - h >= 4 ? y - 30 - h : y + 26) + 'px';
+  setTimeout(() => { el.remove(); if (streakEl === el) streakEl = null; }, 1000);
+}
+
+/* ---------- „Perfekte Runde!“ beim Konfetti (fehlerfrei gelöst) ---------- */
+let perfectTimer = 0;
+function showPerfect(){
+  const el = els.perfect;
+  clearTimeout(perfectTimer);
+  el.textContent = t('perfect');
+  el.classList.remove('out');
+  el.hidden = true; void el.offsetWidth; el.hidden = false; // Animation neu starten
+}
+function hidePerfect(fade){
+  const el = els.perfect;
+  clearTimeout(perfectTimer);
+  if (el.hidden) return;
+  if (!fade) { el.hidden = true; el.classList.remove('out'); return; }
+  el.classList.add('out');
+  perfectTimer = setTimeout(() => { el.hidden = true; el.classList.remove('out'); }, 260);
+}
+
 function onBoardTap(px, py){
   if (G.over && G.skip) { G.skip(); return; } // Tippen während des Konfettis zeigt das Fenster sofort
   if (G.over || !G.board) return;
@@ -1793,11 +1905,14 @@ function onBoardTap(px, py){
   const now = performance.now();
   const r = G.board.tap(id, now);
   if (r.ok) {
-    sndRelease(G.released++); buzz(12);
+    const s = streakStep(now, px, py);
+    sndRelease(s - 1);
+    if (s >= 5 && s % 5 === 0) { sndStreak(); buzz(22); } else buzz(12);
     if (G.hint === id) G.hint = -1;
     if (G.board.left === 0) { G.over = true; if (isBlitz()) blitzWin(); else win(); }
   } else {
     G.crashes++;
+    resetStreak();
     sndCrash(); buzz(70);
     const shakeEl = isBlitz() ? els.timer : els.hearts;
     shakeEl.classList.remove('shake'); void shakeEl.offsetWidth; shakeEl.classList.add('shake');
@@ -1832,20 +1947,22 @@ function win(){
   }
   const show = party => {
     cancelPending();
+    hidePerfect(true);
     if (!party) { sndWin(); buzz(30); }
     showDialog({
       eyebrow: eyebrow(),
       title: t('winTitle'),
-      text: t('winText', G.crashes) + (isHc() ? ' ' + t('hcLeft', G.hearts) : ''),
+      text: t('winText', G.crashes) + (isHc() ? ' ' + t('hcLeft', G.hearts) : '')
+        + (G.streakBest >= STREAK_SHOW ? ' ' + t('streakBest', G.streakBest) : ''),
       chip: reward ? t('reward') : null, party,
       primary: [t('next'), nextLevel],
       secondary: [t('menu'), goHome],
     });
   };
   if (!flawless || reduceMotion) { later(() => show(false), 520 / SPEED); return; }
-  // Fehlerfrei: erst Konfetti, dann das Fenster
+  // Fehlerfrei: erst Konfetti mit „Perfekte Runde!“, dann das Fenster
   later(() => {
-    Confetti.start(); sndCelebrate();
+    Confetti.start(); sndCelebrate(); showPerfect();
     buzz(25); later(() => buzz(25), 130);
     G.skip = () => show(true);
     later(() => show(true), 1000);
@@ -1914,6 +2031,7 @@ function goHome(){
   G.screen = 'home';
   els.dlg.hidden = true;
   els.zoomTip.hidden = true;
+  hidePerfect(); resetStreak();
   els.home.hidden = false;
   renderHome(); kick();
 }

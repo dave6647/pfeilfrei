@@ -12,6 +12,10 @@ Drei Zusammenstöße kosten das Level.
   (1 s pro Pfeil + 3 s), jeder Zusammenstoß kostet 5 s, ein Tipp 3 s. Ist die Zeit um, ist der Durchgang vorbei.
   Die Schwierigkeit steigt wie im klassischen Modus. Werte stehen oben in `web/game.html` (`BLITZ_START` usw.).
 
+In allen Modi zählt eine **Streak** mit, wenn Pfeile schnell hintereinander rausfahren (höchstens 1,2 s Abstand):
+ab 3 schwebt „STREAK ×N“ über der angetippten Stelle und der Ton steigt. Reine Motivation, ohne Einfluss aufs Spiel.
+Fehlerfrei gelöste Level (Klassisch/Hardcore) feiern mit Konfetti und „Perfekte Runde!“.
+
 ## Gratis- und Vollversion
 
 Eine App, die Vollversion wird in der App gekauft (Google Play, einmalig, vorläufig 1,99 €).
