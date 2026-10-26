@@ -1,0 +1,20 @@
+Arrow Escape, metro haritası görünümünde sakin bir ok bulmacasıdır.
+
+Her ok yalnızca gösterdiği yöne gidebilir. Bir oka dokun: Yolu açıksa tahtadan çıkar. Yolda başka bir ok varsa çarpışırlar ve bir can kaybedersin. Doğru sırayı bul ve tüm tahtayı temizle.
+
+ÜÇ MOD
+• Klasik: Her seviyede 3 can. Tahtalar yavaş yavaş ve sonsuza dek büyür, zorlaşır.
+• Hardcore: Tüm seviyeler için 5 can. Beş çarpışmadan sonra 1. seviyeye dönersin. Ne kadar ileri gidebilirsin?
+• Yıldırım: Zamana karşı rastgele seviyeler. Çözülen her seviye süre kazandırır, her çarpışma 5 saniyeye mal olur.
+
+SENİ NELER BEKLİYOR
+• Her seviye çözülebilir: Asla tamamen sıkışıp kalmazsın
+• İhtiyacın olduğunda ipuçları
+• Hızlı hamleler için seriler, kusursuz turlar için konfeti
+• Büyük tahtalar için yakınlaştırma
+• Açık ve koyu tasarım
+• Çevrimdışı oynanır: Hesap yok, reklam yok, izleme yok
+• Türkçe, İngilizce, Almanca, İspanyolca, Portekizce, Fransızca ve Endonezce
+
+ÜCRETSİZ VE TAM SÜRÜM
+Klasik modun ilk 250 seviyesi ücretsizdir. Tek seferlik bir satın alma tam sürümü açar: Hardcore, Yıldırım ve sınırsız seviyeler. Abonelik yok.

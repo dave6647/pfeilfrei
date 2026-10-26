@@ -1,0 +1,1 @@
+Keluarkan semua panah dari papan tanpa tabrakan. Teka-teki santai gaya metro.

@@ -1,0 +1,20 @@
+Arrow Escape is a calm arrow puzzle in the style of a metro map.
+
+Every arrow can only move in the direction it points. Tap an arrow: if its path is clear, it glides off the board. If another arrow is in the way, they crash – and that costs a heart. Find the right order and clear the whole board.
+
+THREE MODES
+• Classic – 3 hearts per level. The boards grow and get trickier, slowly and without end.
+• Hardcore – 5 hearts for all levels together. Five crashes and you start over at level 1. How far can you get?
+• Blitz – random levels against the clock. Every solved level adds time, every crash costs 5 seconds.
+
+WHAT YOU GET
+• Every level can be solved – you can never get stuck for good
+• Hints when you need them
+• Streaks for fast moves and confetti for perfect rounds
+• Zoom for big boards
+• Light and dark design
+• Plays offline: no account, no ads, no tracking
+• In English, German, Spanish, Portuguese, French, Indonesian and Turkish
+
+FREE AND FULL VERSION
+The first 250 Classic levels are free. A one-time purchase unlocks the full version: Hardcore, Blitz and endless levels. No subscription.

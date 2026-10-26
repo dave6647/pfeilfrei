@@ -1,0 +1,20 @@
+Arrow Escape adalah teka-teki panah yang santai dengan tampilan seperti peta metro.
+
+Setiap panah hanya bisa bergerak ke arah yang ditunjuknya. Ketuk sebuah panah: jika jalurnya kosong, panah akan keluar dari papan. Jika ada panah lain yang menghalangi, keduanya bertabrakan dan kamu kehilangan satu nyawa. Temukan urutan yang tepat dan kosongkan seluruh papan.
+
+TIGA MODE
+• Klasik: 3 nyawa per level. Papan makin besar dan makin sulit, perlahan dan tanpa akhir.
+• Hardcore: 5 nyawa untuk semua level. Setelah lima tabrakan, kamu kembali ke level 1. Seberapa jauh kamu bisa melaju?
+• Kilat: level acak melawan waktu. Setiap level yang selesai menambah waktu, setiap tabrakan mengurangi 5 detik.
+
+YANG KAMU DAPATKAN
+• Setiap level pasti bisa diselesaikan: kamu tidak akan pernah buntu
+• Petunjuk saat kamu butuh
+• Kombo untuk langkah cepat dan konfeti untuk ronde sempurna
+• Zoom untuk papan besar
+• Tampilan terang dan gelap
+• Bisa dimainkan offline: tanpa akun, tanpa iklan, tanpa pelacakan
+• Dalam bahasa Indonesia, Inggris, Jerman, Spanyol, Portugis, Prancis, dan Turki
+
+GRATIS DAN VERSI LENGKAP
+250 level pertama di mode Klasik gratis. Sekali beli untuk membuka versi lengkap: Hardcore, Kilat, dan level tanpa batas. Tanpa langganan.

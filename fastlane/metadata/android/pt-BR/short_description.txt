@@ -1,0 +1,1 @@
+Tire todas as setas do tabuleiro sem batidas. Quebra-cabeça calmo estilo metrô.

@@ -1,0 +1,1 @@
+Saca todas las flechas del tablero sin chocar. Un puzle tranquilo estilo metro.

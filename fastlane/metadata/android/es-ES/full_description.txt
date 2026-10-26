@@ -1,0 +1,20 @@
+Arrow Escape es un puzle de flechas tranquilo con el estilo de un plano de metro.
+
+Cada flecha solo se mueve en la dirección a la que apunta. Toca una flecha: si su camino está libre, sale del tablero. Si otra flecha se interpone, chocan, y eso cuesta un corazón. Encuentra el orden correcto y despeja todo el tablero.
+
+TRES MODOS
+• Clásico: 3 corazones por nivel. Los tableros crecen y se vuelven más difíciles, poco a poco y sin fin.
+• Hardcore: 5 corazones para todos los niveles. Tras cinco choques vuelves al nivel 1. ¿Hasta dónde llegarás?
+• Relámpago: niveles aleatorios contra el reloj. Cada nivel resuelto suma tiempo y cada choque resta 5 segundos.
+
+LO QUE TE ESPERA
+• Todos los niveles tienen solución: nunca te quedarás atascado
+• Pistas cuando las necesites
+• Rachas por jugar rápido y confeti en las rondas perfectas
+• Zoom para tableros grandes
+• Diseño claro y oscuro
+• Sin conexión: sin cuenta, sin anuncios, sin seguimiento
+• En español, inglés, alemán, portugués, francés, indonesio y turco
+
+GRATIS Y VERSIÓN COMPLETA
+Los primeros 250 niveles del modo Clásico son gratis. Un único pago desbloquea la versión completa: Hardcore, Relámpago y niveles infinitos. Sin suscripción.

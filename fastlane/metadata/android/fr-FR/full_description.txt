@@ -1,0 +1,20 @@
+Arrow Escape est un puzzle de flèches tout en calme, au look de plan de métro.
+
+Chaque flèche ne peut avancer que dans sa direction. Touche une flèche : si son chemin est libre, elle sort du plateau. Si une autre flèche bloque le passage, elles se percutent, et tu perds un cœur. Trouve le bon ordre et libère tout le plateau.
+
+TROIS MODES
+• Classique : 3 cœurs par niveau. Les plateaux grandissent et se corsent, doucement et sans fin.
+• Hardcore : 5 cœurs pour tous les niveaux. Après cinq collisions, retour au niveau 1. Jusqu’où iras-tu ?
+• Éclair : des niveaux aléatoires contre la montre. Chaque niveau réussi rapporte du temps, chaque collision coûte 5 secondes.
+
+AU PROGRAMME
+• Chaque niveau a une solution : tu ne peux jamais rester bloqué
+• Des indices quand tu en as besoin
+• Des séries pour les coups rapides et des confettis pour les manches parfaites
+• Zoom pour les grands plateaux
+• Thème clair et sombre
+• Hors ligne : sans compte, sans publicité, sans pistage
+• En français, anglais, allemand, espagnol, portugais, indonésien et turc
+
+GRATUIT ET VERSION COMPLÈTE
+Les 250 premiers niveaux du mode Classique sont gratuits. Un achat unique débloque la version complète : Hardcore, Éclair et des niveaux à l’infini. Sans abonnement.
