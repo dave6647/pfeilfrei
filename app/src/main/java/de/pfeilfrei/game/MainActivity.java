@@ -1,15 +1,19 @@
 package de.pfeilfrei.game;
 
 import android.app.Activity;
+import android.content.ActivityNotFoundException;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Insets;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
 import android.view.View;
 import android.view.WindowInsets;
+import android.window.OnBackInvokedDispatcher;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
@@ -34,7 +38,8 @@ import java.util.List;
 
 /**
  * Arrow Escape: Die App zeigt das Spiel (assets/index.html) in einer WebView an.
- * Über "AndroidBridge" kann das Spiel Fortschritt speichern, vibrieren und die Vollversion kaufen.
+ * Über "AndroidBridge" kann das Spiel Fortschritt speichern, vibrieren, die Vollversion kaufen
+ * und Links (Datenschutz/Impressum) im Browser öffnen.
  *
  * Vollversion: einmaliger Kauf über Google Play. In der Play Console muss dafür ein
  * In-App-Produkt mit der ID "vollversion" angelegt sein (Preis dort, z. B. 1,99 €).
@@ -106,6 +111,13 @@ public class MainActivity extends Activity {
         web.addJavascriptInterface(new Bridge(this), "AndroidBridge");
         // Test-APK ("voll-test") braucht keinen Play Store: dort ist ohnehin alles freigeschaltet
         if (!BuildConfig.TEST_FULL) setupBilling();
+
+        // Zurück-Taste/-Geste ab Android 13. Seit targetSdk 36 ruft Android 16 onBackPressed() nicht mehr auf;
+        // im Manifest ist enableOnBackInvokedCallback="true", damit es auf Android 13–16 gleich läuft.
+        if (Build.VERSION.SDK_INT >= 33) {
+            getOnBackInvokedDispatcher().registerOnBackInvokedCallback(
+                    OnBackInvokedDispatcher.PRIORITY_DEFAULT, this::handleBack);
+        }
 
         if (savedInstanceState != null) {
             web.restoreState(savedInstanceState);
@@ -282,15 +294,31 @@ public class MainActivity extends Activity {
         }
     }
 
-    /** Zurück-Taste: erst das Spiel fragen (z. B. zurück ins Menü), sonst App schließen. */
+    /** Zurück-Taste bis Android 12 (ab Android 13 kommt sie über den OnBackInvokedCallback aus onCreate). */
     @Override
     @SuppressWarnings("deprecation")
     public void onBackPressed() {
+        handleBack();
+    }
+
+    /** Zurück: erst das Spiel fragen (Fenster schließen, zurück ins Menü), sonst App schließen. */
+    private void handleBack() {
+        if (web == null) { finish(); return; }
         web.evaluateJavascript("(window.pfBack && window.pfBack()) ? 'ja' : 'nein'", value -> {
             if (value == null || !value.contains("ja")) {
                 finish();
             }
         });
+    }
+
+    /** Link im Browser öffnen (Datenschutz/Impressum). Nur https, damit die Brücke nichts anderes starten kann. */
+    void openExternal(String url) {
+        if (url == null || !url.startsWith("https://")) return;
+        try {
+            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
+        } catch (ActivityNotFoundException e) {
+            // Kein Browser installiert: nichts tun
+        }
     }
 
     /** Wird im Spiel als window.AndroidBridge angesprochen. */
@@ -327,6 +355,12 @@ public class MainActivity extends Activity {
         @JavascriptInterface
         public void buy() {
             activity.runOnUiThread(activity::startPurchase);
+        }
+
+        /** Webseite im Browser öffnen (z. B. Datenschutz und Impressum). */
+        @JavascriptInterface
+        public void openUrl(String url) {
+            activity.runOnUiThread(() -> activity.openExternal(url));
         }
 
         @JavascriptInterface

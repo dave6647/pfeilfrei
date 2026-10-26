@@ -384,6 +384,15 @@ button:focus-visible{outline:2px solid var(--l2);outline-offset:2px}
         <span data-i18n="language">Language</span>
         <span class="lang-current"><span id="langName">English</span><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></span>
       </button>
+      <!-- Datenschutz und Impressum: öffnen die Webseite im Browser (LEGAL_URL) -->
+      <button id="btnPrivacy" class="toggle lang-btn">
+        <span data-i18n="privacy">Privacy</span>
+        <span class="lang-current"><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v6H4V6h6"/></svg></span>
+      </button>
+      <button id="btnImprint" class="toggle lang-btn">
+        <span data-i18n="imprint">Legal notice</span>
+        <span class="lang-current"><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v6H4V6h6"/></svg></span>
+      </button>
       <!-- Nur in der Test-APK (vollTest) und im Browser mit ?debug -->
       <button id="btnDebug" class="toggle lang-btn" aria-haspopup="dialog" hidden>
         <span data-i18n="debug">Debug</span>
@@ -874,6 +883,7 @@ const I18N = {
     streak: 'Streak', // schwebendes Schild beim schnellen Antippen („STREAK ×5“)
     streakBest: n => `Longest streak: ${n}.`,
     perfect: 'Perfect round!', // beim Konfetti (fehlerfrei gelöst)
+    privacy: 'Privacy', imprint: 'Legal notice', // Einstellungen: Links zu Datenschutzerklärung und Impressum (Webseite)
     debug: 'Debug', // nur Test-APK
   },
   de: {
@@ -938,6 +948,7 @@ const I18N = {
     streak: 'Streak',
     streakBest: n => `Längste Streak: ${n}.`,
     perfect: 'Perfekte Runde!',
+    privacy: 'Datenschutz', imprint: 'Impressum',
     debug: 'Debug', // nur Test-APK
   },
   es: {
@@ -1002,6 +1013,7 @@ const I18N = {
     streak: 'Racha',
     streakBest: n => `Mejor racha: ${n}.`,
     perfect: '¡Ronda perfecta!',
+    privacy: 'Privacidad', imprint: 'Aviso legal',
     debug: 'Debug', // nur Test-APK
   },
   pt: {
@@ -1066,6 +1078,7 @@ const I18N = {
     streak: 'Sequência',
     streakBest: n => `Maior sequência: ${n}.`,
     perfect: 'Rodada perfeita!',
+    privacy: 'Privacidade', imprint: 'Aviso legal',
     debug: 'Debug', // nur Test-APK
   },
   fr: {
@@ -1130,6 +1143,7 @@ const I18N = {
     streak: 'Série',
     streakBest: n => `Meilleure série : ${n}.`,
     perfect: 'Manche parfaite\u00A0!',
+    privacy: 'Confidentialité', imprint: 'Mentions légales',
     debug: 'Debug', // nur Test-APK
   },
   id: {
@@ -1194,6 +1208,7 @@ const I18N = {
     streak: 'Kombo',
     streakBest: n => `Kombo terbaik: ${n}.`,
     perfect: 'Ronde sempurna!',
+    privacy: 'Privasi', imprint: 'Informasi hukum',
     debug: 'Debug', // nur Test-APK
   },
   tr: {
@@ -1258,6 +1273,7 @@ const I18N = {
     streak: 'Seri',
     streakBest: n => `En uzun seri: ${n}.`,
     perfect: 'Kusursuz tur!',
+    privacy: 'Gizlilik', imprint: 'Yasal bilgiler',
     debug: 'Debug', // nur Test-APK
   },
 };
@@ -2493,6 +2509,16 @@ function closeSettings(){ setDlg.hidden = true; $('btnSettings').focus({ prevent
 $('btnSettings').addEventListener('click', openSettings);
 $('setClose').addEventListener('click', closeSettings);
 setDlg.addEventListener('click', e => { if (e.target === setDlg) closeSettings(); });
+// Datenschutz und Impressum liegen als Webseite auf GitHub Pages (Ordner docs/). In der App öffnet sie der Browser.
+const LEGAL_URL = 'https://dave6647.github.io/pfeilfrei/';
+function openLink(path){
+  const url = LEGAL_URL + path;
+  buzz(10);
+  if (bridge && typeof bridge.openUrl === 'function') bridge.openUrl(url);
+  else window.open(url, '_blank', 'noopener');
+}
+$('btnPrivacy').addEventListener('click', () => openLink('privacy.html#' + progress.lang));
+$('btnImprint').addEventListener('click', () => openLink('impressum.html' + (progress.lang === 'de' ? '' : '#en')));
 
 /* ---------- Sprachauswahl ---------- */
 const langDlg = $('langDlg'), langList = $('langList');

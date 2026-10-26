@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="18 18 72 72" width="512" height="512">
+  <!-- Gleiches Motiv wie das App-Symbol (app/src/main/res/drawable/ic_launcher_foreground.xml), sichtbarer Ausschnitt 72×72 -->
+  <rect x="0" y="0" width="108" height="108" fill="#16202A"/>
+  <path d="M74,76 L74,46" stroke="#4597FF" stroke-width="7" stroke-linecap="round" fill="none"/>
+  <path d="M66,47 L74,32 L82,47 Z" fill="#4597FF"/>
+  <circle cx="74" cy="76" r="5" fill="#F8FAFB" stroke="#4597FF" stroke-width="3.5"/>
+  <path d="M34,74 L34,58 Q34,50 42,50 L54,50" stroke="#FF5B4F" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M52,42 L65,50 L52,58 Z" fill="#FF5B4F"/>
+  <circle cx="34" cy="74" r="5" fill="#F8FAFB" stroke="#FF5B4F" stroke-width="3.5"/>
+</svg>

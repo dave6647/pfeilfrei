@@ -50,8 +50,25 @@ GitHub Actions baut bei jedem Push auf `main` eine APK und veröffentlicht sie a
 - „Perfekte Runde!“ (`showPerfect()` / `hidePerfect()`) erscheint nur zusammen mit dem Konfetti eines fehlerfreien Levels
   (Klassisch/Hardcore) und blendet aus, sobald das Ergebnis-Fenster kommt.
 
+## Play Store
+
+- Zwei Schlüssel, beide nie ändern:
+  - `app/pfeilfrei-test.keystore` signiert die APKs auf GitHub.
+  - Der Upload-Schlüssel signiert das AAB für die Play Console (Play App Signing). Er liegt **nur** in den GitHub-Secrets
+    `UPLOAD_KEYSTORE_BASE64` und `UPLOAD_KEYSTORE_PASSWORD`, nie im Repo (`app/upload.keystore` steht in `.gitignore`).
+    Ohne die Secrets baut der Workflow nur die APKs.
+- `targetSdk` muss jedes Jahr bis 31. August auf das neueste Android (Play-Pflicht; 2026: API 36).
+- Zurück-Taste: `MainActivity.handleBack()` (ab Android 13 über `OnBackInvokedCallback`, darunter `onBackPressed`) fragt `window.pfBack()`.
+  Neue Fenster im Spiel dort eintragen.
+- Datenschutzerklärung und Impressum liegen in `docs/` (GitHub Pages, `https://dave6647.github.io/pfeilfrei/`), die App verlinkt sie
+  unter Einstellungen (`LEGAL_URL`). Sammelt die App je Daten (Werbung, Analyse, Internet, Konto), `docs/privacy.html` in allen
+  Sprachen und das Datensicherheits-Formular in der Play Console anpassen.
+- Store-Texte: `fastlane/metadata/android/<sprache>/` (Titel max. 30, Kurzbeschreibung max. 80, Beschreibung max. 4000 Zeichen).
+  Bei neuen Funktionen mit anpassen, in allen Sprachen. Grafiken in `fastlane/metadata/android/<sprache>/images/`, erzeugt mit
+  `node tools/store_assets.js`.
+
 ## Sonstiges
 
 - Der Nutzer schreibt Deutsch; Commit-Nachrichten auf Deutsch.
-- `applicationId` bleibt `de.pfeilfrei.game` und der Signaturschlüssel bleibt gleich, damit Updates über alte Installationen gehen.
+- `applicationId` bleibt `de.pfeilfrei.game`, damit Updates über alte Installationen gehen.
 - Speicher-Schlüssel (`pfeilfrei_progress`, SharedPreferences `pfeilfrei`) nicht umbenennen, sonst geht der Spielstand verloren.

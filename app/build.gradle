@@ -8,14 +8,14 @@ def buildNumber = Integer.parseInt(System.getenv("VERSION_CODE") ?: "1")
 
 android {
     namespace 'de.pfeilfrei.game'
-    compileSdk 35
+    compileSdk 36
 
     defaultConfig {
         applicationId 'de.pfeilfrei.game'
         minSdk 26
-        targetSdk 35
+        targetSdk 36
         versionCode buildNumber
-        versionName "0.1.${buildNumber}"
+        versionName "1.0.${buildNumber}"
     }
 
     buildFeatures {
@@ -38,8 +38,13 @@ android {
         }
     }
 
-    // Test-Schlüssel: gleich bei jedem Build, damit Updates ohne
-    // Deinstallieren funktionieren. Für den Play Store später ersetzen.
+    // Zwei Schlüssel:
+    // - test: für die APKs auf GitHub (immer gleich, damit Updates ohne Deinstallieren gehen).
+    // - upload: für das AAB, das in die Play Console hochgeladen wird. Schlüssel und Passwort stehen nur in den
+    //   GitHub-Secrets UPLOAD_KEYSTORE_BASE64 / UPLOAD_KEYSTORE_PASSWORD; der Workflow legt upload.keystore
+    //   nur für den AAB-Schritt an (nie committen, steht in .gitignore).
+    //   Google signiert die App danach mit dem eigenen App-Signaturschlüssel (Play App Signing).
+    def uploadPassword = System.getenv("UPLOAD_KEYSTORE_PASSWORD")
     signingConfigs {
         test {
             storeFile file('pfeilfrei-test.keystore')
@@ -47,12 +52,21 @@ android {
             keyAlias 'pfeilfrei'
             keyPassword 'pfeilfrei'
         }
+        if (uploadPassword) {
+            upload {
+                storeFile file('upload.keystore')
+                storePassword uploadPassword
+                keyAlias 'upload'
+                keyPassword uploadPassword
+            }
+        }
     }
 
     buildTypes {
         release {
             minifyEnabled false
-            signingConfig signingConfigs.test
+            // Mit Passwort (nur beim AAB-Schritt im Workflow gesetzt) → Upload-Schlüssel, sonst Test-Schlüssel
+            signingConfig uploadPassword ? signingConfigs.upload : signingConfigs.test
         }
         debug {
             signingConfig signingConfigs.test

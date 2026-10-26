@@ -51,7 +51,10 @@ Neue Versionen lassen sich einfach über die alte installieren, der Spielstand b
 | `tools/test_levels.js` | Prüft, dass alle Level lösbar sind und Level 1–30 unverändert bleiben. |
 | `tools/test_i18n.js` | Prüft, dass jeder Text in allen Sprachen übersetzt ist. |
 | `app/` | Android-Hülle: zeigt das Spiel in einer WebView, speichert Fortschritt, vibriert. |
-| `.github/workflows/build.yml` | Baut die APK auf GitHub und veröffentlicht sie als Release. |
+| `.github/workflows/build.yml` | Baut die APKs (und mit Secret das AAB für Google Play) und veröffentlicht sie als Release. |
+| `docs/` | Webseite (GitHub Pages): Datenschutzerklärung in allen Sprachen, Impressum, Startseite. |
+| `fastlane/metadata/android/` | Texte und Grafiken für den Play-Store-Eintrag, je Sprache. |
+| `tools/store_assets.js` | Erzeugt Symbol, Titelgrafik und Screenshots für den Play Store. |
 
 ## Texte und Sprachen
 
@@ -81,7 +84,14 @@ So ist jedes Level garantiert lösbar, und man kann sich nie festfahren (es gibt
 Hineinzoomen geht mit zwei Fingern oder der Lupe, gezoomt verschiebt ein Finger das Feld.
 Ein Tipp holt den Pfeil ins Bild. Jedes Level beginnt mit dem ganzen Feld.
 
-## Hinweis zum Signaturschlüssel
+## Signaturschlüssel
 
-`app/pfeilfrei-test.keystore` ist ein Test-Schlüssel, damit sich Updates ohne Deinstallieren installieren lassen.
-Für eine Veröffentlichung im Play Store wird ein eigener, geheimer Schlüssel gebraucht.
+- `app/pfeilfrei-test.keystore` signiert die APKs auf GitHub, damit sich Updates ohne Deinstallieren installieren lassen.
+- Der Upload-Schlüssel für Google Play liegt nicht im Repo, sondern nur in zwei GitHub-Secrets
+  (Settings → Secrets and variables → Actions): `UPLOAD_KEYSTORE_BASE64` (die Schlüsseldatei als Base64-Text) und
+  `UPLOAD_KEYSTORE_PASSWORD`. Sind beide angelegt, baut jeder Build zusätzlich `arrow-escape-…-play.aab` zum Hochladen
+  in die Play Console. Google signiert die App danach mit dem eigenen App-Signaturschlüssel (Play App Signing).
+  Eine Sicherungskopie von Schlüsseldatei und Passwort gehört in einen Passwort-Manager.
+
+Die Play-Store-Version und die GitHub-APKs haben deshalb verschiedene Signaturen: Wer von der APK auf die Play-Version
+wechselt, muss die App einmal deinstallieren (der Spielstand geht dabei verloren).

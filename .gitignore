@@ -6,3 +6,7 @@ local.properties
 .idea/
 .DS_Store
 *.apk
+*.aab
+# Upload-Schlüssel für Google Play: nur in den GitHub-Secrets, nie im Repo
+app/upload.keystore
+*.jks

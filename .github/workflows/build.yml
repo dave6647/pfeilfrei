@@ -11,6 +11,10 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-24.04
+    env:
+      # 'true', sobald die Secrets UPLOAD_KEYSTORE_BASE64 und UPLOAD_KEYSTORE_PASSWORD angelegt sind:
+      # dann wird zusätzlich das AAB für Google Play gebaut
+      HAS_UPLOAD_KEY: ${{ secrets.UPLOAD_KEYSTORE_BASE64 != '' && secrets.UPLOAD_KEYSTORE_PASSWORD != '' }}
     steps:
       - name: Code holen
         uses: actions/checkout@v5
@@ -24,7 +28,7 @@ jobs:
       - name: Gradle einrichten
         uses: gradle/actions/setup-gradle@v4
         with:
-          gradle-version: '8.11.1'
+          gradle-version: '8.14.3'
 
       - name: Spiel-Dateien erzeugen
         run: python3 tools/build_web.py
@@ -42,6 +46,24 @@ jobs:
         env:
           VERSION_CODE: ${{ github.run_number }}
 
+      # Für die Play Console: App-Bundle, signiert mit dem Upload-Schlüssel. Der Schlüssel liegt nur in den Secrets
+      # (nie im Repo) und wird für diesen Schritt nach app/upload.keystore geschrieben.
+      - name: AAB für Google Play bauen
+        if: env.HAS_UPLOAD_KEY == 'true'
+        run: |
+          set -o pipefail
+          printf '%s' "$UPLOAD_KEYSTORE_BASE64" | base64 -d > app/upload.keystore
+          gradle bundleStoreRelease --no-daemon --stacktrace 2>&1 | tee -a gradle.log
+          rm -f app/upload.keystore
+          aab=arrow-escape-${{ github.run_number }}-play.aab
+          cp app/build/outputs/bundle/storeRelease/app-store-release.aab "$aab"
+          # Sicherheitsnetz: nie ein AAB mit dem Test-Schlüssel ausliefern
+          keytool -printcert -jarfile "$aab" | grep -q "CN=Arrow Escape Upload" || { echo "::error title=AAB::nicht mit dem Upload-Schlüssel signiert"; exit 1; }
+        env:
+          VERSION_CODE: ${{ github.run_number }}
+          UPLOAD_KEYSTORE_BASE64: ${{ secrets.UPLOAD_KEYSTORE_BASE64 }}
+          UPLOAD_KEYSTORE_PASSWORD: ${{ secrets.UPLOAD_KEYSTORE_PASSWORD }}
+
       # Fehler als Hinweis (Annotation) ausgeben: so sind sie auch über die API lesbar, ohne die Log-Datei
       - name: Build-Fehler melden
         if: failure()
@@ -55,11 +77,11 @@ jobs:
           cp app/build/outputs/apk/store/release/app-store-release.apk arrow-escape-${{ github.run_number }}-gratis.apk
           cp app/build/outputs/apk/vollTest/release/app-vollTest-release.apk arrow-escape-${{ github.run_number }}-voll-test.apk
 
-      - name: APKs als Download ablegen
+      - name: APKs (und AAB) als Download ablegen
         uses: actions/upload-artifact@v4
         with:
           name: arrow-escape-apk-${{ github.run_number }}
-          path: arrow-escape-${{ github.run_number }}-*.apk
+          path: arrow-escape-${{ github.run_number }}-*.a*
 
       - name: Release veröffentlichen
         uses: softprops/action-gh-release@v2
@@ -71,6 +93,7 @@ jobs:
             - arrow-escape-${{ github.run_number }}-gratis.apk: so wie später im Play Store. Klassisch bis Level 250, Hardcore und Blitz gesperrt. Kaufen klappt erst, wenn die App im Play Store ist.
             - arrow-escape-${{ github.run_number }}-voll-test.apk: alles freigeschaltet, nur zum Testen.
             Zum Installieren die Datei auf dem Handy antippen und herunterladen.
+            ${{ env.HAS_UPLOAD_KEY == 'true' && format('Dazu arrow-escape-{0}-play.aab: nur zum Hochladen in die Play Console (lässt sich nicht direkt installieren).', github.run_number) || '' }}
             Änderung: ${{ github.event.head_commit.message }}
-          files: arrow-escape-${{ github.run_number }}-*.apk
+          files: arrow-escape-${{ github.run_number }}-*.a*
           make_latest: true
