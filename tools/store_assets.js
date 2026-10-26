@@ -254,11 +254,22 @@ async function render(browser, htmlStr, w, h, file){
     }
     console.log(`${lang}: ${raw.length} Screenshots + Titelgrafik`);
   }
-  // App-Symbol 512×512 (für alle Sprachen gleich)
+  // App-Symbol 512×512 (für alle Sprachen gleich). Play verlangt ein 32-Bit-PNG (mit Alphakanal):
+  // deshalb über ein Canvas exportieren, ein Screenshot wäre 24 Bit.
   const iconDir = path.join(OUT, 'en-US', 'images');
   fs.mkdirSync(iconDir, { recursive: true });
   const svg = fs.readFileSync(path.join(ROOT, 'docs', 'icon.svg'), 'utf8');
-  await render(browser, `<!doctype html><html><body style="margin:0">${svg}</body></html>`, 512, 512, path.join(iconDir, 'icon.png'));
+  const ip = await browser.newPage();
+  const dataUrl = await ip.evaluate(async src => {
+    const img = new Image();
+    img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(src);
+    await img.decode();
+    const c = document.createElement('canvas'); c.width = c.height = 512;
+    c.getContext('2d').drawImage(img, 0, 0, 512, 512);
+    return c.toDataURL('image/png');
+  }, svg);
+  fs.writeFileSync(path.join(iconDir, 'icon.png'), Buffer.from(dataUrl.split(',')[1], 'base64'));
+  await ip.close();
   await browser.close();
   fs.rmSync(TMP, { recursive: true, force: true });
   console.log('Fertig:', OUT);
