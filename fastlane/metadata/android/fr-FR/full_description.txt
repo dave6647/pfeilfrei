@@ -1,4 +1,4 @@
-Arrow Escape est un puzzle de flèches tout en calme, au look de plan de métro.
+Clear the Line est un puzzle de flèches tout en calme, au look de plan de métro.
 
 Chaque flèche ne peut avancer que dans sa direction. Touche une flèche : si son chemin est libre, elle sort du plateau. Si une autre flèche bloque le passage, elles se percutent, et tu perds un cœur. Trouve le bon ordre et libère tout le plateau.
 

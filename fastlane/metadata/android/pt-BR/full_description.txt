@@ -1,4 +1,4 @@
-Arrow Escape é um quebra-cabeça de setas tranquilo, no estilo de um mapa de metrô.
+Clear the Line é um quebra-cabeça de setas tranquilo, no estilo de um mapa de metrô.
 
 Cada seta só anda na direção para onde aponta. Toque em uma seta: se o caminho estiver livre, ela sai do tabuleiro. Se outra seta estiver no caminho, elas batem, e isso custa um coração. Descubra a ordem certa e limpe o tabuleiro inteiro.
 

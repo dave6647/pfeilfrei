@@ -24,6 +24,9 @@ header{display:flex;align-items:center;gap:12px;margin-bottom:20px}
 header a{color:inherit;text-decoration:none;display:flex;align-items:center;gap:12px}
 .logo{width:44px;height:44px;border-radius:11px;flex:none;display:block}
 .brand{font-weight:800;font-size:20px;letter-spacing:.01em}
+.brand-studio{font-size:24px;letter-spacing:-.01em}
+.brand-studio::after{content:".";color:var(--red)}
+ul.games{margin:0 0 12px;padding-left:20px}
 .track{height:5px;border-radius:3px;background:linear-gradient(90deg,var(--red) 0 50%,var(--blue) 50% 100%);margin:0 0 24px}
 nav.langs{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 20px}
 nav.langs a{font-size:14px;padding:6px 12px;border-radius:999px;border:1.5px solid var(--line);color:var(--ink);text-decoration:none}

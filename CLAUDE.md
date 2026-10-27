@@ -1,6 +1,9 @@
-# Arrow Escape – Regeln für dieses Repo
+# Clear the Line: Arrow Puzzle – Regeln für dieses Repo
 
 Pfeil-Puzzle für Android. Das Spiel liegt komplett in `web/game.html`, die Android-App ist nur eine WebView-Hülle (`app/`).
+Name: „Clear the Line: Arrow Puzzle“ (App-Name „Clear the Line“, früher „Arrow Escape“), von davelabs (Geschäftsbezeichnung von David Müller).
+Der Name steht in `app_name` (strings.xml), im Schriftzug und `<title>` von `web/game.html`, in `docs/`, in den Store-Texten
+und in der Titelgrafik (`tools/store_assets.js`). Bei einer Namensänderung alle diese Stellen anpassen.
 GitHub Actions baut bei jedem Push auf `main` eine APK und veröffentlicht sie als Release.
 
 ## Übersetzungen (Pflicht)
@@ -60,6 +63,7 @@ GitHub Actions baut bei jedem Push auf `main` eine APK und veröffentlicht sie a
 - `targetSdk` muss jedes Jahr bis 31. August auf das neueste Android (Play-Pflicht; 2026: API 36).
 - Zurück-Taste: `MainActivity.handleBack()` (ab Android 13 über `OnBackInvokedCallback`, darunter `onBackPressed`) fragt `window.pfBack()`.
   Neue Fenster im Spiel dort eintragen.
+- Das Impressum ist allgemein für davelabs; neue Spiele dort unter „Meine Spiele“ / „My games“ eintragen.
 - Datenschutzerklärung und Impressum liegen in `docs/` (GitHub Pages, `https://dave6647.github.io/pfeilfrei/`), die App verlinkt sie
   unter Einstellungen (`LEGAL_URL`). Sammelt die App je Daten (Werbung, Analyse, Internet, Konto), `docs/privacy.html` in allen
   Sprachen und das Datensicherheits-Formular in der Play Console anpassen.

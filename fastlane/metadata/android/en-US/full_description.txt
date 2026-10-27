@@ -1,4 +1,4 @@
-Arrow Escape is a calm arrow puzzle in the style of a metro map.
+Clear the Line is a calm arrow puzzle in the style of a metro map.
 
 Every arrow can only move in the direction it points. Tap an arrow: if its path is clear, it glides off the board. If another arrow is in the way, they crash – and that costs a heart. Find the right order and clear the whole board.
 

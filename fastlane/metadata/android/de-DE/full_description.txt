@@ -1,4 +1,4 @@
-Arrow Escape ist ein ruhiges Pfeil-Puzzle im Look eines Metroplans.
+Clear the Line ist ein ruhiges Pfeil-Puzzle im Look eines Metroplans.
 
 Jeder Pfeil fährt nur in seine Richtung. Tippe einen Pfeil an: Ist sein Weg frei, fährt er vom Feld. Steht ein anderer Pfeil im Weg, gibt es einen Zusammenstoß – und das kostet ein Herz. Finde die richtige Reihenfolge und räume das ganze Feld ab.
 

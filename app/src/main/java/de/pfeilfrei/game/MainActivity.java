@@ -37,7 +37,7 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Arrow Escape: Die App zeigt das Spiel (assets/index.html) in einer WebView an.
+ * Clear the Line (früher Arrow Escape): Die App zeigt das Spiel (assets/index.html) in einer WebView an.
  * Über "AndroidBridge" kann das Spiel Fortschritt speichern, vibrieren, die Vollversion kaufen
  * und Links (Datenschutz/Impressum) im Browser öffnen.
  *

@@ -1,4 +1,4 @@
-Arrow Escape, metro haritası görünümünde sakin bir ok bulmacasıdır.
+Clear the Line, metro haritası görünümünde sakin bir ok bulmacasıdır.
 
 Her ok yalnızca gösterdiği yöne gidebilir. Bir oka dokun: Yolu açıksa tahtadan çıkar. Yolda başka bir ok varsa çarpışırlar ve bir can kaybedersin. Doğru sırayı bul ve tüm tahtayı temizle.
 

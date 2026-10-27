@@ -55,9 +55,10 @@ jobs:
           printf '%s' "$UPLOAD_KEYSTORE_BASE64" | base64 -d > app/upload.keystore
           gradle bundleStoreRelease --no-daemon --stacktrace 2>&1 | tee -a gradle.log
           rm -f app/upload.keystore
-          aab=arrow-escape-${{ github.run_number }}-play.aab
+          aab=clear-the-line-${{ github.run_number }}-play.aab
           cp app/build/outputs/bundle/storeRelease/app-store-release.aab "$aab"
           # Sicherheitsnetz: nie ein AAB mit dem Test-Schlüssel ausliefern
+          # (der Upload-Schlüssel heißt noch nach dem alten Spielnamen und bleibt so: CN=Arrow Escape Upload)
           keytool -printcert -jarfile "$aab" | grep -q "CN=Arrow Escape Upload" || { echo "::error title=AAB::nicht mit dem Upload-Schlüssel signiert"; exit 1; }
         env:
           VERSION_CODE: ${{ github.run_number }}
@@ -74,26 +75,26 @@ jobs:
 
       - name: APKs benennen
         run: |
-          cp app/build/outputs/apk/store/release/app-store-release.apk arrow-escape-${{ github.run_number }}-gratis.apk
-          cp app/build/outputs/apk/vollTest/release/app-vollTest-release.apk arrow-escape-${{ github.run_number }}-voll-test.apk
+          cp app/build/outputs/apk/store/release/app-store-release.apk clear-the-line-${{ github.run_number }}-gratis.apk
+          cp app/build/outputs/apk/vollTest/release/app-vollTest-release.apk clear-the-line-${{ github.run_number }}-voll-test.apk
 
       - name: APKs (und AAB) als Download ablegen
         uses: actions/upload-artifact@v4
         with:
-          name: arrow-escape-apk-${{ github.run_number }}
-          path: arrow-escape-${{ github.run_number }}-*.a*
+          name: clear-the-line-apk-${{ github.run_number }}
+          path: clear-the-line-${{ github.run_number }}-*.a*
 
       - name: Release veröffentlichen
         uses: softprops/action-gh-release@v2
         with:
           tag_name: build-${{ github.run_number }}
-          name: Arrow Escape Build ${{ github.run_number }}
+          name: Clear the Line Build ${{ github.run_number }}
           body: |
             Zwei Dateien, beide ersetzen sich gegenseitig (der Spielstand bleibt):
-            - arrow-escape-${{ github.run_number }}-gratis.apk: so wie später im Play Store. Klassisch bis Level 250, Hardcore und Blitz gesperrt. Kaufen klappt erst, wenn die App im Play Store ist.
-            - arrow-escape-${{ github.run_number }}-voll-test.apk: alles freigeschaltet, nur zum Testen.
+            - clear-the-line-${{ github.run_number }}-gratis.apk: so wie später im Play Store. Klassisch bis Level 250, Hardcore und Blitz gesperrt. Kaufen klappt erst, wenn die App im Play Store ist.
+            - clear-the-line-${{ github.run_number }}-voll-test.apk: alles freigeschaltet, nur zum Testen.
             Zum Installieren die Datei auf dem Handy antippen und herunterladen.
-            ${{ env.HAS_UPLOAD_KEY == 'true' && format('Dazu arrow-escape-{0}-play.aab: nur zum Hochladen in die Play Console (lässt sich nicht direkt installieren).', github.run_number) || '' }}
+            ${{ env.HAS_UPLOAD_KEY == 'true' && format('Dazu clear-the-line-{0}-play.aab: nur zum Hochladen in die Play Console (lässt sich nicht direkt installieren).', github.run_number) || '' }}
             Änderung: ${{ github.event.head_commit.message }}
-          files: arrow-escape-${{ github.run_number }}-*.a*
+          files: clear-the-line-${{ github.run_number }}-*.a*
           make_latest: true

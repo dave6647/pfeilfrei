@@ -1,4 +1,4 @@
-Arrow Escape es un puzle de flechas tranquilo con el estilo de un plano de metro.
+Clear the Line es un puzle de flechas tranquilo con el estilo de un plano de metro.
 
 Cada flecha solo se mueve en la dirección a la que apunta. Toca una flecha: si su camino está libre, sale del tablero. Si otra flecha se interpone, chocan, y eso cuesta un corazón. Encuentra el orden correcto y despeja todo el tablero.
 

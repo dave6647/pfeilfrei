@@ -220,7 +220,7 @@ function featureHtml(lang, img){
     <path d="M-20 474 H 500 Q 548 474 548 426 V -20" stroke="${C.blue}"/>
   </svg>
   <div class="txt"><img class="ico" src="file://${path.join(ROOT, 'docs', 'icon.svg')}"><p class="eb">${esc(eyebrow)}</p>
-    <h1>Arrow<br>Escape<b>.</b></h1><p>${esc(CAPTIONS[lang].tag)}</p></div>
+    <h1>Clear the<br>Line<b>.</b></h1><p>${esc(CAPTIONS[lang].tag)}</p></div>
   <div class="card"><img src="file://${img}"></div>
   </body></html>`;
 }

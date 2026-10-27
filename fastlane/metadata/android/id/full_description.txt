@@ -1,4 +1,4 @@
-Arrow Escape adalah teka-teki panah yang santai dengan tampilan seperti peta metro.
+Clear the Line adalah teka-teki panah yang santai dengan tampilan seperti peta metro.
 
 Setiap panah hanya bisa bergerak ke arah yang ditunjuknya. Ketuk sebuah panah: jika jalurnya kosong, panah akan keluar dari papan. Jika ada panah lain yang menghalangi, keduanya bertabrakan dan kamu kehilangan satu nyawa. Temukan urutan yang tepat dan kosongkan seluruh papan.
 

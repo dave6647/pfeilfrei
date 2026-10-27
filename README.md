@@ -1,4 +1,6 @@
-# Arrow Escape
+# Clear the Line: Arrow Puzzle
+
+Ein Spiel von davelabs (David Müller), früher „Arrow Escape“, Arbeitstitel „Pfeilfrei“.
 
 Ein Pfeil-Puzzle für Android im Metroplan-Look. Jeder Pfeil fährt nur in seine Richtung.
 Ziel ist es, alle Pfeile in der richtigen Reihenfolge vom Feld zu schicken, ohne dass sie zusammenstoßen.
@@ -32,8 +34,8 @@ Sprachen: Englisch (Standard), Deutsch, Spanisch, Portugiesisch (Brasilien), Fra
 
 1. Auf GitHub rechts auf **Releases** tippen (oder `/releases/latest` an die Repo-Adresse hängen).
 2. Eine der beiden Dateien herunterladen und öffnen:
-   - `arrow-escape-…-gratis.apk`: so wie später im Play Store (Gratis-Version mit Kaufen-Knopf).
-   - `arrow-escape-…-voll-test.apk`: alles freigeschaltet, nur zum Testen. Nicht in den Play Store hochladen.
+   - `clear-the-line-…-gratis.apk`: so wie später im Play Store (Gratis-Version mit Kaufen-Knopf).
+   - `clear-the-line-…-voll-test.apk`: alles freigeschaltet, nur zum Testen. Nicht in den Play Store hochladen.
 
    Beide haben dieselbe App-ID und ersetzen sich gegenseitig, der Spielstand bleibt.
 3. Beim ersten Mal fragt Android, ob der Browser Apps installieren darf. Das einmal erlauben.
@@ -89,7 +91,7 @@ Ein Tipp holt den Pfeil ins Bild. Jedes Level beginnt mit dem ganzen Feld.
 - `app/pfeilfrei-test.keystore` signiert die APKs auf GitHub, damit sich Updates ohne Deinstallieren installieren lassen.
 - Der Upload-Schlüssel für Google Play liegt nicht im Repo, sondern nur in zwei GitHub-Secrets
   (Settings → Secrets and variables → Actions): `UPLOAD_KEYSTORE_BASE64` (die Schlüsseldatei als Base64-Text) und
-  `UPLOAD_KEYSTORE_PASSWORD`. Sind beide angelegt, baut jeder Build zusätzlich `arrow-escape-…-play.aab` zum Hochladen
+  `UPLOAD_KEYSTORE_PASSWORD`. Sind beide angelegt, baut jeder Build zusätzlich `clear-the-line-…-play.aab` zum Hochladen
   in die Play Console. Google signiert die App danach mit dem eigenen App-Signaturschlüssel (Play App Signing).
   Eine Sicherungskopie von Schlüsseldatei und Passwort gehört in einen Passwort-Manager.
 
