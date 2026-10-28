@@ -26,49 +26,63 @@ const CAPTIONS = {
     ['Hardcore', '5 hearts for all levels. How far can you get?'],
     ['Blitz', 'Random levels against the clock.'],
     ['Three modes', 'Calm puzzles, endless levels.'],
-    ['Light or dark', 'And confetti for perfect rounds.'] ] },
+    ['Light or dark', 'And confetti for perfect rounds.'],
+    ['Zoom and grid', 'Big boards stay easy to read.'],
+    ['Keep the streak', 'Fast taps light up the line.'] ] },
   de: { tag: 'Räum das Feld ab, ohne Zusammenstoß.', shots: [
     ['Räum das Feld ab', 'Jeder Pfeil fährt nur in seine Richtung.'],
     ['Finde die Reihenfolge', 'Ein Zusammenstoß kostet ein Herz.'],
     ['Hardcore', '5 Herzen für alle Level. Wie weit kommst du?'],
     ['Blitz', 'Zufällige Level gegen die Uhr.'],
     ['Drei Modi', 'Ruhige Rätsel, unendlich viele Level.'],
-    ['Hell oder dunkel', 'Und Konfetti für perfekte Runden.'] ] },
+    ['Hell oder dunkel', 'Und Konfetti für perfekte Runden.'],
+    ['Zoom und Raster', 'Auch große Felder bleiben übersichtlich.'],
+    ['Halte die Streak', 'Schnell tippen, Streak aufbauen.'] ] },
   es: { tag: 'Despeja el tablero sin chocar.', shots: [
     ['Despeja el tablero', 'Cada flecha va solo en su dirección.'],
     ['Encuentra el orden', 'Un choque cuesta un corazón.'],
     ['Hardcore', '5 corazones para todos los niveles. ¿Hasta dónde llegarás?'],
     ['Relámpago', 'Niveles aleatorios contra el reloj.'],
     ['Tres modos', 'Puzles tranquilos, niveles infinitos.'],
-    ['Claro u oscuro', 'Y confeti en las rondas perfectas.'] ] },
+    ['Claro u oscuro', 'Y confeti en las rondas perfectas.'],
+    ['Zoom y cuadrícula', 'Los tableros grandes siguen claros.'],
+    ['Mantén la racha', 'Toca rápido y sube la racha.'] ] },
   pt: { tag: 'Limpe o tabuleiro sem batidas.', shots: [
     ['Limpe o tabuleiro', 'Cada seta só anda na sua direção.'],
     ['Ache a ordem certa', 'Uma batida custa um coração.'],
     ['Hardcore', '5 corações para todos os níveis. Até onde você chega?'],
     ['Relâmpago', 'Níveis aleatórios contra o relógio.'],
     ['Três modos', 'Quebra-cabeças calmos, níveis infinitos.'],
-    ['Claro ou escuro', 'E confete nas rodadas perfeitas.'] ] },
+    ['Claro ou escuro', 'E confete nas rodadas perfeitas.'],
+    ['Zoom e grade', 'Tabuleiros grandes continuam fáceis de ler.'],
+    ['Mantenha a sequência', 'Toque rápido e aumente a sequência.'] ] },
   fr: { tag: 'Libère le plateau sans collision.', shots: [
     ['Libère le plateau', 'Chaque flèche ne va que dans sa direction.'],
     ['Trouve le bon ordre', 'Une collision coûte un cœur.'],
     ['Hardcore', '5 cœurs pour tous les niveaux. Jusqu’où iras-tu ?'],
     ['Éclair', 'Des niveaux aléatoires contre la montre.'],
     ['Trois modes', 'Des puzzles zen, des niveaux à l’infini.'],
-    ['Clair ou sombre', 'Et des confettis pour les manches parfaites.'] ] },
+    ['Clair ou sombre', 'Et des confettis pour les manches parfaites.'],
+    ['Zoom et grille', 'Les grands plateaux restent lisibles.'],
+    ['Garde la série', 'Tape vite et fais grimper la série.'] ] },
   id: { tag: 'Kosongkan papan tanpa tabrakan.', shots: [
     ['Kosongkan papan', 'Setiap panah hanya bergerak ke satu arah.'],
     ['Temukan urutannya', 'Tabrakan membuatmu kehilangan satu nyawa.'],
     ['Hardcore', '5 nyawa untuk semua level. Seberapa jauh kamu bisa?'],
     ['Kilat', 'Level acak melawan waktu.'],
     ['Tiga mode', 'Teka-teki santai, level tanpa batas.'],
-    ['Terang atau gelap', 'Plus konfeti untuk ronde sempurna.'] ] },
+    ['Terang atau gelap', 'Plus konfeti untuk ronde sempurna.'],
+    ['Zoom dan kisi', 'Papan besar tetap mudah dibaca.'],
+    ['Jaga kombo', 'Ketuk cepat dan naikkan kombomu.'] ] },
   tr: { tag: 'Tahtayı çarpışmadan temizle.', shots: [
     ['Tahtayı temizle', 'Her ok yalnızca kendi yönüne gider.'],
     ['Doğru sırayı bul', 'Her çarpışma bir cana mal olur.'],
     ['Hardcore', 'Tüm seviyeler için 5 can. Ne kadar ileri gidebilirsin?'],
     ['Yıldırım', 'Zamana karşı rastgele seviyeler.'],
     ['Üç mod', 'Sakin bulmacalar, sınırsız seviyeler.'],
-    ['Açık veya koyu', 'Kusursuz turlara konfeti.'] ] },
+    ['Açık veya koyu', 'Kusursuz turlara konfeti.'],
+    ['Yakınlaştırma ve ızgara', 'Büyük tahtalar bile kolay okunur.'],
+    ['Seriyi sürdür', 'Hızlı dokun, serini büyüt.'] ] },
 };
 
 // Handy-Bildschirm für die Aufnahmen (CSS-Pixel) und Schärfe
@@ -134,7 +148,7 @@ async function tapFree(page, count, gap){
 
 async function shot(page, file){ await page.screenshot({ path: file }); }
 
-// Rohaufnahmen der 6 Szenen für eine Sprache
+// Rohaufnahmen der 8 Szenen für eine Sprache
 async function captureRaw(browser, lang, dir){
   const raw = [];
   const take = async (name, opts, act) => {
@@ -173,6 +187,19 @@ async function captureRaw(browser, lang, dir){
   await take('6', { dark: true, state: { level: 9 } }, async p => {
     await p.click('#btnClassic'); await sleep(500);
     await tapFree(p, 200, 90); await sleep(700);
+  });
+  // 7: dunkel, großes Feld gezoomt mit Raster und Tipp
+  await take('7', { dark: true, state: { level: 400, grid: true } }, async p => {
+    await p.click('#btnClassic'); await sleep(500);
+    await tapFree(p, 4, 400); await sleep(900);
+    await p.evaluate(() => window.__pf.useHint()); await sleep(300);
+    await p.click('#btnZoom'); await sleep(900);
+  });
+  // 8: dunkel, Blitz mit Streak beim schnellen Abräumen
+  await take('8', { dark: true, state: { run: { normal: null, hc: null,
+      blitz: { n: 40, v: LEVEL_GEN, seed: 777, removed: [], hearts: 3, crashes: 0, hint: -1, time: 52300 } } } }, async p => {
+    await p.click('#btnBlitz'); await sleep(500);
+    await tapFree(p, 6, 220); await sleep(120);
   });
   return raw;
 }
